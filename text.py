@@ -28,16 +28,82 @@ import pygame
 
 class Context:
     def __init__(self):
-        self.focusedpanel = -1
-    
-class Panel:
-    controls = "-□x"
+        self.focusedpanel = None
 
-    def __init__(self, x=0, y=0, w=0, h=0, title="", content="", status="normal", focus=False):
+
+class Zone:
+    def __init__(self, x=0, y=0, w=0, h=0, parent=None, panel=None):
         self.x = x
         self.y = y
-        self.w = max(w, len(title)+2+len(Panel.controls))
+        self.w = w
         self.h = h
+        self.parent = parent
+        self.panel = panel
+        self.childs = []
+        self.addpanel(panel)
+
+    def addpanel(self, panel):
+        if panel != None:
+            self.panel = panel
+            self.childs = []
+            panel.attachtozone(self)
+
+    def removepanel(self):
+        self.panel = None
+
+    def split(self, dir, pct):
+        self.splitdir = dir
+        self.splitpct = pct
+        if dir == "h":  # horizontal split
+            subz1 = Zone(self.x, self.y, self.w, int(self.h * pct), self, self.panel)
+            subz2 = Zone(self.x, int(self.y + self.h * pct),self.w, int(self.h * (1-pct)), self, Panel("temp"))
+            self.childs = [subz1, subz2]
+        else:  # vertical spli
+            subz1 = Zone(self.x, self.y, int(self.w * pct),self.h, self, self.panel)
+            subz2 = Zone(int(self.x + self.w * pct), self.y,int(self.w * (1-pct)), self.h, self, Panel("temp"))
+            self.childs = [subz1, subz2]
+        self.removepanel()
+        return subz1, subz2
+
+    def resize(self, pct):  # change split pct
+        self.splitpct = pct
+        if self.splitdir == "h":
+            self.childs[0].y = self.y
+            self.childs[0].h = int(self.h * pct)
+            self.childs[1].y = int(self.y + self.h * pct)
+            self.childs[1].h = int(self.h * (1-pct))
+        else:
+            self.childs[0].x = self.x
+            self.childs[0].w = int(self.w * pct)
+            self.childs[1].x = int(self.x + self.w * pct)
+            self.childs[1].w = int(self.w * (1-pct))
+
+    def remove(self):  # remove me from my parent, my parent will have only one child, so put my sibling in place of my parent in my grandparent
+        self.parent.childs.remove(self)  # remove me from my parent
+        print("parent childs:"+str(len(self.parent.childs)))
+        for i in range(len(self.parent.parent.childs)):
+            if self.parent.parent.childs[i] == self.parent:# remove my parent from his parent
+                self.parent.parent.childs[i] = self.parent.childs[0]  # put my sibling instead
+                print("raplaced, grand parent childs:"+str(len(self.parent.parent.childs)))
+        self.parent.parent.resize(self.parent.parent.splitpct)# resize grandparent subzones
+        self.parent = None  # remove my parent from me to free the object
+
+    def draw(self, scr, font):
+        lineheigth = font.get_linesize()
+        for i in range(len(self.childs)):
+            self.childs[i].draw(scr, font)
+        if self.panel != None:
+            panelcolor = self.panel.getcolor()
+            panellines = self.panel.draw()
+            for i in range(len(panellines)):
+                scr.blit(font.render(
+                    panellines[i], True, panelcolor), (0, i*lineheigth))
+
+
+class Panel:
+
+    def __init__(self, title="", content="", status="normal", focus=False):
+        self.controls = "□_|x"
         self.title = title
         self.status = status
         self.hasfocus = focus
@@ -45,72 +111,80 @@ class Panel:
         self.innercursory = 0
         self.updatecontent(content)
 
-    def updatecontent(self,content):
+    def attachtozone(self, zone):
+        self.zone = zone
+
+    def updatecontent(self, content):
         self.content = content
         self.contentheigth = 0
         if len(self.content) > 0:
             self.contentheigth = 1
             if len(self.content[0]) > 1:  # if txt is an array (multiline)
                 self.contentheigth = len(self.content)
-        self.updatecurrenth()
-
-    def updatecurrenth(self):
-        if self.status == "minimized":
-            self.currenth = self.h
-        else:
-            self.currenth = max(self.h,self.contentheigth+2)
 
     def toggleminimised(self):
         if self.status == "minimized":
             self.status = "normal"
+            self.zone.parent.resize(.5)
+        elif self.status == "normal":
+            self.status = "maximized"
+            self.zone.parent.resize(.9)
         else:
             self.status = "minimized"
-        self.updatecurrenth()
-        
+            self.zone.parent.resize(.1)
+
     def getcolor(self):
         if self.hasfocus:
-            return (200,200,200)
+            return (200, 200, 200)
         else:
-            return (100,100,100)
-    def isclicked(self ,charx,chary):
-        return charx>= self.x and charx <= self.x + self.w and chary >= self.y and chary <= self.y + self.currenth
-    
-    def handlecontrolclicked(self , charx, chary):
-        controlsminpos = -4 #"-□x"
-        controlsmaxpos = -3
-        controlsclosepos = -2
-        if  chary == self.y:
-            if charx == self.x + self.w + controlsminpos :
-                print("clicked minimize")
-                self.toggleminimised() 
-            elif charx == self.x + self.w + controlsmaxpos:
-                print("clicked maximize")
-                self.toggleminimised() 
-            elif charx == self.x + self.w + controlsclosepos:
-                print("clicked close")
+            return (100, 100, 100)
 
-    def handleclick(self , charx, chary):
+    def isclicked(self, charx, chary):
+        return charx >= self.zone.x and charx <= self.zone.x + self.zone.w and chary >= self.zone.y and chary <= self.zone.y + self.zone.h
+
+    def handlecontrolclicked(self, charx, chary):
+        controlsminimize = -5  # "□_|x"
+        controlssplith = -4
+        controlssplitv = -3
+        controlsclose = -2
+        if chary == self.zone.y:
+            if charx == self.zone.x + self.zone.w + controlsminimize:
+                print("clicked minimize")
+                self.toggleminimised()
+            elif charx == self.zone.x + self.zone.w + controlssplith:
+                print("clicked split h")
+                self.zone.split("h", .5)
+            elif charx == self.zone.x + self.zone.w + controlssplitv:
+                print("clicked split v")
+                self.zone.split("v", .5)
+            elif charx == self.zone.x + self.zone.w + controlsclose:
+                print("clicked close")
+                self.zone.remove()
+
+    def handleclick(self, charx, chary):
         self.handlecontrolclicked(charx, chary)
 
     def draw(self):
         txtarray = []
-        for i in range(self.y):
+        for i in range(self.zone.y):
             txtarray.append("")
-        txtarray.append(" "*self.x+"╔"+self.title+"═"*(self.w-2-len(self.title) -
-                        len(Panel.controls))+Panel.controls+"╗")  # top border
-        if self.status == "normal" and self.contentheigth >0 :
+        txtarray.append(" "*self.zone.x+"╔"+self.title+"═"*(self.zone.w-2-len(self.title) -
+                        len(self.controls))+self.controls+"╗")  # top border
+        if self.contentheigth > 0:
             if self.contentheigth > 1:  # if txt is an array (multiline)
                 for ti in range(self.contentheigth):
                     txtline = self.content[ti]
-                    txtarray.append(" "*self.x+"║"+txtline +
-                                    " "*(self.w-2-len(txtline))+"║")
+                    txtarray.append(" "*self.zone.x+"║"+txtline +
+                                    " "*(self.zone.w-2-len(txtline))+"║")
             else:
-                txtarray.append(" "*self.x+"║"+self.content +
-                                " "*(self.w-2-len(self.content))+"║")
-            for i in range(self.h-2-self.contentheigth):
-                txtarray.append(" "*self.x+"║"+" "*(self.w-2)+"║")
-        txtarray.append(" "*self.x+"╚"+"═"*(self.w-2)+"╝")  # bottom border
+                txtarray.append(" "*self.zone.x+"║"+self.content +
+                                " "*(self.zone.w-2-len(self.content))+"║")
+        for i in range(self.zone.h-2-self.contentheigth):
+            txtarray.append(" "*self.zone.x+"║"+" "*(self.zone.w-2)+"║")
+        txtarray.append(" "*self.zone.x+"╚"+"═" *
+                        (self.zone.w-2)+"╝")  # bottom border
         return (txtarray)
+
 
 class TxtHelper:
     def getline(ar, y):
@@ -145,44 +219,36 @@ class TxtHelper:
             o = TxtHelper.mergetwoarrays(o, aa[i])
         return o
 
-def updatepanels(context,panels, action,button,charx=None,chary=None):
-    if action=="click":
-        if button == 1: #left
-            ci=-1
-            for i in range(len(panels)):
-                panels[i].hasfocus=False
-                if panels[i].isclicked(charx,chary):
-                    ci=i
-                    panels[i].handleclick(charx,chary)
-            if ci>-1:
-                panels[ci].hasfocus=True
-                context.focusedpanel=ci
 
-    if action=="keydown":
-        key=button
-        if(key==pygame.K_m):
-            panels[context.focusedpanel].toggleminimised()
+def handleclick(context, zone, button, charx, chary):
+    if button == 1:  # left
+        for i in range(len(zone.childs)):
+            handleclick(context, zone.childs[i], button, charx, chary)
+        if zone.panel != None:
+            if zone.panel.isclicked(charx, chary):
+                zone.panel.hasfocus = True
+                context.focusedpanel = zone.panel
+                zone.panel.handleclick(charx, chary)
+            else:
+                zone.panel.hasfocus = False
+
+def handlekeydown(context, rootzone, key):
+    if (key == pygame.K_m):
+        context.focusedpanel.toggleminimised()
+
 
 def initcontext():
     return Context()
 
-def initpanels(screenw,screenh):
-    tl = ["Big","Square"]
-    sq1 = Panel(0, 0, screenw-1, screenh-1, "", tl, "normal")
-    sq2 = Panel(50, 10, 50, 20, "title")
-    sq3 = Panel(52, 11, 10, 10, "focused", "content","normal",True)
-    txtb = Panel(10, 10, 1, 1, "Small text box!")
-    txtb2 = Panel(10, 10, 1, 1, "smal box",["with","several","text lines"])
-    return [sq1, sq2, sq3, txtb,txtb2]#low to high
- 
-def drawscreen(scr, font, panels):
-    lineheigth = font.get_linesize()
-    for i in range(len(panels)):
-        panelcolor = panels[i].getcolor()
-        panellines = panels[i].draw()
-        for i in range(len(panellines)):
-            scr.blit(font.render(panellines[i],
-                    True, panelcolor), (0, i*lineheigth))
+
+def initrootzone(screenw, screenh):
+    rootzone = Zone(0, 0, screenw-1, screenh-1)
+    lzone, rzone = rootzone.split("v", .4)
+    lzone.addpanel(Panel("Left", ["Big", "Square"]))
+    rzone.addpanel(Panel("Right", ["with", "several", "text lines"]))
+    return rootzone
+
+
 def main():
     displayinfo = pygame.display.Info()
     screen = pygame.display.set_mode(
@@ -193,8 +259,8 @@ def main():
     charwidth, charheigth = font.size(" ")
     maxlines = int(screen.get_height()/lineheigth)
     linewidth = int(screen.get_width()/charwidth)
+    rootzone = initrootzone(linewidth, maxlines)
     context = initcontext()
-    panels = initpanels(linewidth,maxlines)
     bgcolor = (30, 30, 30)
     clock = pygame.time.Clock()
     done = False
@@ -206,17 +272,17 @@ def main():
                 if event.key == pygame.K_ESCAPE:
                     done = True
                 else:
-                    updatepanels(context, panels, "keydown", event.key)
+                    handlekeydown(context, rootzone, event.key)
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # 1 - left click, 2 - middle click, 3 - right click, 4 - scroll up, 5 - scroll down
-                if event.button == 1: # left click
+                if event.button == 1:  # left click
                     clickx, clicky = pygame.mouse.get_pos()
                     charx = int(clickx / charwidth)
                     chary = int(clicky / lineheigth)
-                    print(str(charx)+ " "+str(chary))
-                    updatepanels(context, panels, "click",event.button,charx,chary)
+                    print(str(charx) + " "+str(chary))
+                    handleclick(context, rootzone, event.button, charx, chary)
         screen.fill(bgcolor)
-        drawscreen(screen, font, panels)
+        rootzone.draw(screen, font)
         pygame.display.flip()
         clock.tick(30)
 
