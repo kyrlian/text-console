@@ -3,6 +3,7 @@ import pygame
 
 from zone import Zone
 from panel import Panel
+from panelmp3player import Panelmp3player
 
 # single line borders - https://en.wikipedia.org/wiki/Box_Drawing
 # 	        0 	1 	2 	3 	4 	5 	6 	7 	8 	9 	A 	B 	C 	D 	E 	F
@@ -38,8 +39,10 @@ def initcontext():
 def initrootzone(screenw, screenh):
     rootzone = Zone(0, 0, screenw-1, screenh-1)
     childs = rootzone.split("v", .4)
-    childs[0].attachpanel(Panel("Left", ["Big", "Square"]))
-    childs[0].attachpanel(Panel("Right", ["with", "several", "text lines"]))
+    leftchilds = childs[0].split("h", .2)
+    leftchilds[0].attachpanel(Panelmp3player("mp3"))
+    leftchilds[1].attachpanel(Panel("Left", ["Big", "Square"]))
+    childs[1].attachpanel(Panel("Right", ["with", "several", "text lines"]))
     return rootzone
 
 def main():

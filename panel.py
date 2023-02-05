@@ -7,12 +7,13 @@ class Panel:
         self.status = status
         self.innercursorx = 0
         self.innercursory = 0
-        self.updatecontent(content)
+        self.initcontent(content)
+        self.sizes=[1,int(self.contentheigth*.1),self.contentheigth]
 
     def attachtozone(self, zone):
         self.zone = zone
 
-    def updatecontent(self, content):
+    def initcontent(self, content):
         self.content = content
         self.contentheigth = 0
         if len(self.content) > 0:
@@ -23,13 +24,13 @@ class Panel:
     def toggleminimised(self):
         if self.status == "minimized":
             self.status = "normal"
-            self.zone.parent.resize(.5)
+            self.zone.parent.resizeabs(self.sizes[1])
         elif self.status == "normal":
             self.status = "maximized"
-            self.zone.parent.resize(.9)
+            self.zone.parent.resizeabs(self.sizes[2])
         else:
             self.status = "minimized"
-            self.zone.parent.resize(.1)
+            self.zone.parent.resizeabs(self.sizes[0])
 
     def getcolor(self, context):
         if context.focusedpanel == self:
