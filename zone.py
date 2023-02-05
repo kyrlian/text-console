@@ -1,4 +1,6 @@
 from panel import Panel
+import pygame
+
 
 class Zone:
     def __init__(self, x=0, y=0, w=0, h=0, parent=None, panel=None):
@@ -49,15 +51,23 @@ class Zone:
             else:
                 pct = self.splitpct
             if self.splitdir == "h":
+                self.childs[0].x = self.x
                 self.childs[0].y = self.y
+                self.childs[0].w = self.w
                 self.childs[0].h = int(self.h * pct)
+                self.childs[1].x = self.x
                 self.childs[1].y = int(self.y + self.h * pct)
+                self.childs[1].w = self.w
                 self.childs[1].h = int(self.h * (1-pct))
             else:
                 self.childs[0].x = self.x
+                self.childs[0].y = self.y
                 self.childs[0].w = int(self.w * pct)
+                self.childs[0].h = self.h
                 self.childs[1].x = int(self.x + self.w * pct)
+                self.childs[1].y = self.y
                 self.childs[1].w = int(self.w * (1-pct))
+                self.childs[1].h = self.h
             self.childs[0].resize()
             self.childs[1].resize()
 
