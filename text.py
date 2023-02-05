@@ -88,12 +88,28 @@ class Zone:
         self.parent.parent.resize(self.parent.parent.splitpct)# resize grandparent subzones
         self.parent = None  # remove my parent from me to free the object
 
-    def draw(self, scr, font):
+    def handlezoneclick(self, context, button, charx, chary):
+        if button == 1:  # left
+            if self.panel != None:
+                if self.panel.isclicked(charx, chary):
+                    context.focusedpanel = self.panel
+                    self.panel.handlepanelclick(charx, chary)
+                    return True
+            for i in range(len(self.childs)):
+                done = self.childs[i].handlezoneclick(context, button, charx, chary)
+                if done:
+                    return True
+
+    def handlezonekeydown(context, key):
+        if (key == pygame.K_m):
+            context.focusedpanel.toggleminimised()
+
+    def draw(self,context, scr, font):
         lineheigth = font.get_linesize()
         for i in range(len(self.childs)):
-            self.childs[i].draw(scr, font)
+            self.childs[i].draw(context,scr, font)
         if self.panel != None:
-            panelcolor = self.panel.getcolor()
+            panelcolor = self.panel.getcolor(context)
             panellines = self.panel.draw()
             for i in range(len(panellines)):
                 scr.blit(font.render(
@@ -102,11 +118,10 @@ class Zone:
 
 class Panel:
 
-    def __init__(self, title="", content="", status="normal", focus=False):
+    def __init__(self, title="", content="", status="normal"):
         self.controls = "□_|x"
         self.title = title
         self.status = status
-        self.hasfocus = focus
         self.innercursorx = 0
         self.innercursory = 0
         self.updatecontent(content)
@@ -133,16 +148,16 @@ class Panel:
             self.status = "minimized"
             self.zone.parent.resize(.1)
 
-    def getcolor(self):
-        if self.hasfocus:
+    def getcolor(self,context):
+        if context.focusedpanel == self:
             return (200, 200, 200)
         else:
             return (100, 100, 100)
 
     def isclicked(self, charx, chary):
-        return charx >= self.zone.x and charx <= self.zone.x + self.zone.w and chary >= self.zone.y and chary <= self.zone.y + self.zone.h
+        return charx >= self.zone.x and charx < self.zone.x + self.zone.w and chary >= self.zone.y and chary < self.zone.y + self.zone.h
 
-    def handlecontrolclicked(self, charx, chary):
+    def handlecontrolclick(self, charx, chary):
         controlsminimize = -5  # "□_|x"
         controlssplith = -4
         controlssplitv = -3
@@ -161,8 +176,8 @@ class Panel:
                 print("clicked close")
                 self.zone.remove()
 
-    def handleclick(self, charx, chary):
-        self.handlecontrolclicked(charx, chary)
+    def handlepanelclick(self, charx, chary):
+        self.handlecontrolclick(charx, chary)
 
     def draw(self):
         txtarray = []
@@ -220,21 +235,7 @@ class TxtHelper:
         return o
 
 
-def handleclick(context, zone, button, charx, chary):
-    if button == 1:  # left
-        for i in range(len(zone.childs)):
-            handleclick(context, zone.childs[i], button, charx, chary)
-        if zone.panel != None:
-            if zone.panel.isclicked(charx, chary):
-                zone.panel.hasfocus = True
-                context.focusedpanel = zone.panel
-                zone.panel.handleclick(charx, chary)
-            else:
-                zone.panel.hasfocus = False
 
-def handlekeydown(context, rootzone, key):
-    if (key == pygame.K_m):
-        context.focusedpanel.toggleminimised()
 
 
 def initcontext():
@@ -272,7 +273,7 @@ def main():
                 if event.key == pygame.K_ESCAPE:
                     done = True
                 else:
-                    handlekeydown(context, rootzone, event.key)
+                    rootzone.handlezonekeydown(context,  event.key)
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # 1 - left click, 2 - middle click, 3 - right click, 4 - scroll up, 5 - scroll down
                 if event.button == 1:  # left click
@@ -280,9 +281,9 @@ def main():
                     charx = int(clickx / charwidth)
                     chary = int(clicky / lineheigth)
                     print(str(charx) + " "+str(chary))
-                    handleclick(context, rootzone, event.button, charx, chary)
+                    rootzone.handlezoneclick(context,  event.button, charx, chary)
         screen.fill(bgcolor)
-        rootzone.draw(screen, font)
+        rootzone.draw(context,screen, font)
         pygame.display.flip()
         clock.tick(30)
 
