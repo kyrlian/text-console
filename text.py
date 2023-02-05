@@ -40,54 +40,70 @@ class Zone:
         self.parent = parent
         self.panel = panel
         self.childs = []
-        self.addpanel(panel)
+        self.attachpanel(panel)
 
-    def addpanel(self, panel):
+    def attachpanel(self, panel):
         if panel != None:
             self.panel = panel
             self.childs = []
             panel.attachtozone(self)
+            return True
+        return False
 
     def removepanel(self):
         self.panel = None
+
+    def attachzone(self, zone):
+        self.childs.append(zone)
+        zone.parent = self
+        self.removepanel()
 
     def split(self, dir, pct):
         self.splitdir = dir
         self.splitpct = pct
         if dir == "h":  # horizontal split
-            subz1 = Zone(self.x, self.y, self.w, int(self.h * pct), self, self.panel)
-            subz2 = Zone(self.x, int(self.y + self.h * pct),self.w, int(self.h * (1-pct)), self, Panel("temp"))
-            self.childs = [subz1, subz2]
+            self.attachzone(  Zone(self.x, self.y, self.w, int(self.h * pct), self, self.panel))
+            self.attachzone(  Zone(self.x, int(self.y + self.h * pct),self.w, int(self.h * (1-pct)), self, Panel("temp")))
         else:  # vertical spli
-            subz1 = Zone(self.x, self.y, int(self.w * pct),self.h, self, self.panel)
-            subz2 = Zone(int(self.x + self.w * pct), self.y,int(self.w * (1-pct)), self.h, self, Panel("temp"))
-            self.childs = [subz1, subz2]
-        self.removepanel()
-        return subz1, subz2
+            self.attachzone( Zone(self.x, self.y, int(self.w * pct),self.h, self, self.panel))
+            self.attachzone( Zone(int(self.x + self.w * pct), self.y,int(self.w * (1-pct)), self.h, self, Panel("temp")))
+        return self.childs
 
-    def resize(self, pct):  # change split pct
-        self.splitpct = pct
-        if self.splitdir == "h":
-            self.childs[0].y = self.y
-            self.childs[0].h = int(self.h * pct)
-            self.childs[1].y = int(self.y + self.h * pct)
-            self.childs[1].h = int(self.h * (1-pct))
+    def resize(self, pct=None):  # change split pct, or just recalc sizes (if Pct==None)
+        if len(self.childs)>0:
+            if pct != None:
+                self.splitpct = pct
+            else:
+                pct = self.splitpct
+            if self.splitdir == "h":
+                self.childs[0].y = self.y
+                self.childs[0].h = int(self.h * pct)
+                self.childs[1].y = int(self.y + self.h * pct)
+                self.childs[1].h = int(self.h * (1-pct))
+            else:
+                self.childs[0].x = self.x
+                self.childs[0].w = int(self.w * pct)
+                self.childs[1].x = int(self.x + self.w * pct)
+                self.childs[1].w = int(self.w * (1-pct))
+            self.childs[0].resize()
+            self.childs[1].resize()
+
+    def remove(self):
+        if self.parent == None:# if I am root, quit
+            print("I am root")
+            pygame.quit()
+            sys.exit()
         else:
-            self.childs[0].x = self.x
-            self.childs[0].w = int(self.w * pct)
-            self.childs[1].x = int(self.x + self.w * pct)
-            self.childs[1].w = int(self.w * (1-pct))
-
-    def remove(self):  # remove me from my parent, my parent will have only one child, so put my sibling in place of my parent in my grandparent
-        self.parent.childs.remove(self)  # remove me from my parent
-        print("parent childs:"+str(len(self.parent.childs)))
-        for i in range(len(self.parent.parent.childs)):
-            if self.parent.parent.childs[i] == self.parent:# remove my parent from his parent
-                self.parent.parent.childs[i] = self.parent.childs[0]  # put my sibling instead
-                print("raplaced, grand parent childs:"+str(len(self.parent.parent.childs)))
-        self.parent.parent.resize(self.parent.parent.splitpct)# resize grandparent subzones
-        self.parent = None  # remove my parent from me to free the object
-
+            self.parent.childs.remove(self)  # remove me from my parent
+            # copy sibling content to parent
+            sibling = self.parent.childs[0]
+            if not self.parent.attachpanel(sibling.panel):
+                self.parent.childs=[]
+                for i in range(len(sibling.childs)):
+                    self.parent.attachzone(sibling.childs[i])
+                self.parent.resize(self.parent.splitpct)# resize parent subzones
+            self.parent = None  # remove my parent from me to free the object
+            
     def handlezoneclick(self, context, button, charx, chary):
         if button == 1:  # left
             if self.panel != None:
@@ -100,7 +116,7 @@ class Zone:
                 if done:
                     return True
 
-    def handlezonekeydown(context, key):
+    def handlezonekeydown(self, context, key):
         if (key == pygame.K_m):
             context.focusedpanel.toggleminimised()
 
@@ -234,21 +250,15 @@ class TxtHelper:
             o = TxtHelper.mergetwoarrays(o, aa[i])
         return o
 
-
-
-
-
 def initcontext():
     return Context()
 
-
 def initrootzone(screenw, screenh):
     rootzone = Zone(0, 0, screenw-1, screenh-1)
-    lzone, rzone = rootzone.split("v", .4)
-    lzone.addpanel(Panel("Left", ["Big", "Square"]))
-    rzone.addpanel(Panel("Right", ["with", "several", "text lines"]))
+    childs = rootzone.split("v", .4)
+    childs[0].attachpanel(Panel("Left", ["Big", "Square"]))
+    childs[0].attachpanel(Panel("Right", ["with", "several", "text lines"]))
     return rootzone
-
 
 def main():
     displayinfo = pygame.display.Info()
