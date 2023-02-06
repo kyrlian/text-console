@@ -16,6 +16,7 @@ class Panelmp3player(Panel):
         self.musicdir = content
         self.listfiles(self.musicdir)
         self.listoffset = 0
+        self.playingtitle = ""
         mixer.init()
 
     def preferedsizes(self):
@@ -43,18 +44,19 @@ class Panelmp3player(Panel):
         if not self.paused and not mixer.music.get_busy():
             self.forward()
             self.play()
-        playing = ""
-        if self.currentsongnumber != None:
-            playing = self.songlist[self.currentsongnumber]
-        self.content = [self.playcontrols, playing]+self.listfilenames()
+        self.content = [self.playcontrols, self.playingtitle]+self.listfilenames()
 
     def stop(self):
         mixer.music.stop()
 
     def play(self):
         if self.currentsongnumber != None:
-            mixer.music.load( os.path.join(self.musicdir, self.songlist[self.currentsongnumber]))
-            mixer.music.play()
+            musicfile = self.songlist[self.currentsongnumber]
+            musicfilepath = os.path.join(self.musicdir, musicfile)
+            if os.path.isfile(musicfilepath):
+                mixer.music.load( musicfilepath )
+                mixer.music.play()
+                self.playingtitle = musicfile.replace(".mp3","")
 
     def pause(self):
         if self.paused:
@@ -66,12 +68,18 @@ class Panelmp3player(Panel):
     def backward(self):
         if self.currentsongnumber != None:
             self.currentsongnumber = max(self.currentsongnumber-1 , 0)
+            limit =  len(self.songlist)
+            while not self.songlist[self.currentsongnumber].endswith(".mp3") and limit > 0:#music file
+                self.currentsongnumber = max(self.currentsongnumber-1 , 0)
+                limit-=1
 
     def forward(self):
         if self.currentsongnumber != None:
-            self.currentsongnumber += 1
-            if self.currentsongnumber >= len(self.songlist):
-                self.currentsongnumber = 0  # Loop
+            self.currentsongnumber == ( self.currentsongnumber +1 ) %  len(self.songlist) #loop
+            limit =  len(self.songlist)
+            while not self.songlist[self.currentsongnumber].endswith(".mp3") and limit > 0:#music file
+                self.currentsongnumber == ( self.currentsongnumber +1 ) %  len(self.songlist) 
+                limit-=1
 
     def handleplayerclick(self, charx, chary):
         controlsstop = [1]  # "▣ > || << >>"
@@ -97,14 +105,16 @@ class Panelmp3player(Panel):
                 self.forward()
 
     def handlesongclick(self, charx, chary):
-        linecliked = chary - self.zone.y - 2 - self.listoffset  # skip controls and title, manage list offset
+        linecliked = chary - self.zone.y - 3 + self.listoffset  # skip controls and title, manage list offset
         if linecliked >= 0 and linecliked < len(self.songlist):
-            if self.songlist[linecliked].endswith(".mp3"):
+            if self.songlist[linecliked].endswith(".mp3"):#music file
                 self.currentsongnumber = linecliked
                 self.play()
-            else:
-                self.musicdir = os.path.join(self.musicdir, self.songlist[self.linecliked])
-                self.listfiles(self.musicdir)
+            else:#directory
+                newdir =  os.path.join(self.musicdir, self.songlist[linecliked])
+                if os.path.isdir(newdir):
+                    self.musicdir = newdir
+                    self.listfiles(self.musicdir)
 
     def handlepanelclick(self, charx, chary):
         self.handleplayerclick(charx, chary)

@@ -42,7 +42,7 @@ def initrootzone(screenw, screenh):
     zl, zr = rootzone.split("v", .4)
     zlt, zlb = zl.split("h", .2) 
     zlt.attachpanel(Panelclock("clock"))
-    zlt.split("h", .2,Panelmp3player("mp3","E:/Music/"))
+    zlt.split("h", .2,Panelmp3player("mp3",r"D:\music\#Divers"))
     zlb.attachpanel(Panel("Left", ["Big", "Square"]))
     zr.attachpanel(Panel("Right", ["with", "several", "text lines"]))
     return rootzone
