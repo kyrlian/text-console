@@ -4,6 +4,7 @@ import pygame
 from zone import Zone
 from panel import Panel
 from panelmp3player import Panelmp3player
+from panelclock import Panelclock
 
 # single line borders - https://en.wikipedia.org/wiki/Box_Drawing
 # 	        0 	1 	2 	3 	4 	5 	6 	7 	8 	9 	A 	B 	C 	D 	E 	F
@@ -38,19 +39,32 @@ def initcontext():
 
 def initrootzone(screenw, screenh):
     rootzone = Zone(0, 0, screenw-1, screenh-1)
-    childs = rootzone.split("v", .4)
-    leftchilds = childs[0].split("h", .2)
-    leftchilds[0].attachpanel(Panelmp3player("mp3"))
-    leftchilds[1].attachpanel(Panel("Left", ["Big", "Square"]))
-    childs[1].attachpanel(Panel("Right", ["with", "several", "text lines"]))
+    zl, zr = rootzone.split("v", .4)
+    zlt, zlb = zl.split("h", .2) 
+    zlt.attachpanel(Panelclock("clock"))
+    zlt.split("h", .2,Panelmp3player("mp3"))
+    zlb.attachpanel(Panel("Left", ["Big", "Square"]))
+    zr.attachpanel(Panel("Right", ["with", "several", "text lines"]))
     return rootzone
+
+def pickfont():
+    available = pygame.font.get_fonts()
+    print("Available fonts : "+str(available))
+    candidates = ["lucidaconsole","ibmplexmono"]
+    for f in candidates:
+        if f in available:
+            print("Selected candidate font : "+f)
+            return pygame.font.SysFont(f, 15)
+    for f in available:
+        if "mono" in f:
+            print("Selected mono font : "+f)
+            return pygame.font.SysFont(f, 15)
 
 def main():
     displayinfo = pygame.display.Info()
     screen = pygame.display.set_mode(
         (displayinfo.current_w, displayinfo.current_h), pygame.FULLSCREEN)
-    # print(pygame.font.get_fonts())
-    font = pygame.font.SysFont('lucidaconsole', 15)
+    font = pickfont()
     lineheigth = font.get_linesize()
     charwidth, charheigth = font.size(" ")
     maxlines = int(screen.get_height()/lineheigth)
@@ -78,6 +92,7 @@ def main():
                     print(str(charx) + " "+str(chary))
                     rootzone.handlezoneclick(context,  event.button, charx, chary)
         screen.fill(bgcolor)
+        rootzone.update()
         rootzone.draw(context,screen, font)
         pygame.display.flip()
         clock.tick(30)

@@ -5,9 +5,10 @@ class Panel:
         self.controls = "□_|x"
         self.title = title
         self.status = status
-        self.innercursorx = 0
-        self.innercursory = 0
         self.initcontent(content)
+        self.preferedsizes()
+
+    def preferedsizes(self):
         self.sizes=[.1,.5,.9]
 
     def attachtozone(self, zone):
@@ -20,6 +21,9 @@ class Panel:
             self.contentheigth = 1
             if len(self.content[0]) > 1:  # if txt is an array (multiline)
                 self.contentheigth = len(self.content)
+
+    def update(self):
+        pass
 
     def toggleminimised(self):
         if self.status == "minimized":
@@ -82,4 +86,7 @@ class Panel:
             txtarray.append(" "*self.zone.x+"║"+" "*(self.zone.w-2)+"║")
         txtarray.append(" "*self.zone.x+"╚"+"═" *
                         (self.zone.w-2)+"╝")  # bottom border
-        return (txtarray)
+        cutarray=[]#generate copy array staying in the zone
+        for y in range(self.zone.y+self.zone.h):
+            cutarray.append(txtarray[y][0:self.zone.x+self.zone.w])
+        return cutarray

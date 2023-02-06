@@ -6,6 +6,9 @@ class Panelmp3player(Panel):
         self.content = "▣ > || << >>"
         self.contentheigth = 1
 
+    def preferedsizes(self):
+        self.sizes=[3,10,20]
+
     def handleplayerclick(self, charx, chary):
         controlsstop = [1]  # "▣ > || << >>"
         controlssplay = [3]

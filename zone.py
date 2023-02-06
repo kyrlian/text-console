@@ -30,23 +30,25 @@ class Zone:
         zone.parent = self
         self.removepanel()
 
-    def split(self, dir, pct):
+    def split(self, dir, pct, newpanel=None):
         self.splitdir = dir
         self.splitpct = pct
+        if  newpanel == None:
+            newpanel = Panel("temp")
         if dir == "h":  # horizontal split
             self.attachzone(Zone(self.x, self.y, self.w,
                             int(self.h * pct), self, self.panel))
             self.attachzone(Zone(self.x, int(self.y + self.h * pct),
-                            self.w, int(self.h * (1-pct)), self, Panel("temp")))
-        else:  # vertical spli
+                            self.w, int(self.h * (1-pct)), self,newpanel))
+        else:  # vertical split
             self.attachzone(Zone(self.x, self.y, int(
                 self.w * pct), self.h, self, self.panel))
             self.attachzone(Zone(int(self.x + self.w * pct), self.y,
-                            int(self.w * (1-pct)), self.h, self, Panel("temp")))
-        return self.childs
+                            int(self.w * (1-pct)), self.h, self,newpanel))
+        return self.childs[0], self.childs[1]
 
     def resize(self, pctorabs=None):  # change split pct, or just recalc sizes (if Pct==None)
-        if len(self.childs) > 0:
+        if len(self.childs) > 0:#resize splits
             if pctorabs != None:
                 if pctorabs < 1:
                     pct = pctorabs
@@ -112,6 +114,12 @@ class Zone:
     def handlezonekeydown(self, context, key):
         if (key == pygame.K_m):
             context.focusedpanel.toggleminimised()
+
+    def update(self):
+        for i in range(len(self.childs)):
+            self.childs[i].update()
+        if self.panel != None:
+            self.panel.update()
 
     def draw(self, context, scr, font):
         lineheigth = font.get_linesize()
