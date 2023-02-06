@@ -6,24 +6,28 @@ class Panel:
         self.title = title
         self.status = status
         self.initcontent(content)
-        self.preferedsizes()
-
-    def preferedsizes(self):
-        self.sizes=[.1,.5,.9]
+        self.update()
 
     def attachtozone(self, zone):
         self.zone = zone
+        
+    def preferedsizes(self):
+        self.sizes=[.1,.5,.9]
 
-    def initcontent(self, content):
-        self.content = content
+    def initcontent(self,content):
+        self.content=content
+
+    def updatecontent(self):
+        pass
+
+    def update(self):
+        self.updatecontent()
         self.contentheigth = 0
         if len(self.content) > 0:
             self.contentheigth = 1
             if len(self.content[0]) > 1:  # if txt is an array (multiline)
                 self.contentheigth = len(self.content)
-
-    def update(self):
-        pass
+        self.preferedsizes()#is after init content, so it can use self.contentheigth
 
     def toggleminimised(self):
         if self.status == "minimized":
