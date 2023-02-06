@@ -71,6 +71,9 @@ class Panel:
     def handlepanelclick(self, charx, chary):
         self.handlecontrolclick(charx, chary)
 
+    def handlepanelkeydown(self, key):
+        pass
+
     def draw(self):
         txtarray = []
         for i in range(self.zone.y):

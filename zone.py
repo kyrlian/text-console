@@ -114,6 +114,8 @@ class Zone:
     def handlezonekeydown(self, context, key):
         if (key == pygame.K_m):
             context.focusedpanel.toggleminimised()
+        else:
+            context.focusedpanel.handlepanelkeydown(key)
 
     def update(self):
         for i in range(len(self.childs)):
