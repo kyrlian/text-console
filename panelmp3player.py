@@ -11,7 +11,7 @@ class Panelmp3player(Panel):
         self.content = self.playcontrols
         self.contentheigth = 1
         self.paused = True
-        self.currentsongnumber = 0
+        self.currentsongnumber = None
         self.musicdir = content
         self.listfiles(self.musicdir)
 
@@ -20,10 +20,12 @@ class Panelmp3player(Panel):
 
     def listfiles(self, dir):
         self.songlist = glob.glob( dir+"/*.mp3")
+        if len(self.songlist)>0:
+            self.currentsongnumber = 0
 
     def listfilenames(self):
         l = []
-        for i in len(self.songlist):
+        for i in range(len(self.songlist)):
             n = os.path.basename(self.songlist[i])
             if i == self.currentsongnumber:
                 n = "> "+n
@@ -31,7 +33,9 @@ class Panelmp3player(Panel):
         return l
 
     def updatecontent(self):
-        playing = os.path.basename(self.currentsongnumber)
+        playing = ""
+        if self.currentsongnumber != None:
+            os.path.basename(self.songlist[self.currentsongnumber])
         self.content = [self.playcontrols, playing]+self.listfilenames()
 
     def handlesongclick(self, charx, chary):
