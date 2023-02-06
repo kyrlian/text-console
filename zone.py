@@ -45,32 +45,16 @@ class Zone:
                             int(self.w * (1-pct)), self.h, self, Panel("temp")))
         return self.childs
 
-    def resizeabs(self, abs):  # change split pct, or just recalc sizes (if Pct==None)
+    def resize(self, pctorabs=None):  # change split pct, or just recalc sizes (if Pct==None)
         if len(self.childs) > 0:
-            if self.splitdir == "h":
-                self.childs[0].x = self.x
-                self.childs[0].y = self.y
-                self.childs[0].w = self.w
-                self.childs[0].h = abs
-                self.childs[1].x = self.x
-                self.childs[1].y = self.y + abs
-                self.childs[1].w = self.w
-                self.childs[1].h = self.h - abs
-            else:
-                self.childs[0].x = self.x
-                self.childs[0].y = self.y
-                self.childs[0].w = abs
-                self.childs[0].h = self.h
-                self.childs[1].x = self.x + abs
-                self.childs[1].y = self.y
-                self.childs[1].w = self.w - abs
-                self.childs[1].h = self.h
-            self.childs[0].resizepct()
-            self.childs[1].resizepct()
-
-    def resizepct(self, pct=None):  # change split pct, or just recalc sizes (if Pct==None)
-        if len(self.childs) > 0:
-            if pct != None:
+            if pctorabs != None:
+                if pctorabs < 1:
+                    pct = pctorabs
+                else: #abs
+                    if self.splitdir == "h":
+                        pct = pctorabs / self.h
+                    else:
+                        pct = pctorabs / self.w
                 self.splitpct = pct
             else:
                 pct = self.splitpct
@@ -92,8 +76,8 @@ class Zone:
                 self.childs[1].y = self.y
                 self.childs[1].w = int(self.w * (1-pct))
                 self.childs[1].h = self.h
-            self.childs[0].resizepct()
-            self.childs[1].resizepct()
+            self.childs[0].resize()
+            self.childs[1].resize()
 
     def remove(self):
         if self.parent == None:  # if I am root, quit
