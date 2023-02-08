@@ -48,13 +48,14 @@ class PanelTextInput(Panel):
                 # get text input from 0 to -1 i.e. end.
                 self.textbeforecursor = self.textbeforecursor[:-1]
             elif event.key == pygame.K_UP:
-                #TODO move cursor up, manage line break :)
+                #TODO move cursor up : by - linewidth 
                 print("TODO move cursor up")
             elif event.key == pygame.K_DOWN:
-                #TODO move cursor down, manage line break :)
+                #TODO move cursor down : by + linewidth 
                 print("TODO move cursor down")
             elif event.key == pygame.K_LEFT:
                 self.movecursorleftright(-1)
+            #TODO handle home and end
             elif event.key == pygame.K_RIGHT:
                 self.movecursorleftright(1)
             # Unicode standard is used for string formation
