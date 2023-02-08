@@ -5,6 +5,9 @@ class Panel:
         self.controls = "□_|x"
         self.title = title
         self.status = status
+        self.zone = None
+        self.sizes=[.1,.5,.9]
+        self.content=content
         self.initcontent(content)
         self.update()
 
@@ -12,13 +15,13 @@ class Panel:
         self.zone = zone
         
     def preferedsizes(self):
-        self.sizes=[.1,.5,.9]
+        pass #stub, to be customized for each panel type
 
     def initcontent(self,content):
-        self.content=content
+        pass #stub, to be customized for each panel type
 
     def updatecontent(self):
-        pass
+        pass #stub, to be customized for each panel type
 
     def update(self):
         self.updatecontent()
@@ -32,13 +35,13 @@ class Panel:
     def toggleminimised(self):
         if self.status == "minimized":
             self.status = "normal"
-            self.zone.parent.resize(self.sizes[1])
+            self.zone.resizeme(self.sizes[1])
         elif self.status == "normal":
             self.status = "maximized"
-            self.zone.parent.resize(self.sizes[2])
+            self.zone.resizeme(self.sizes[2])
         else:
             self.status = "minimized"
-            self.zone.parent.resize(self.sizes[0])
+            self.zone.resizeme(self.sizes[0])
 
     def getcolor(self, context):
         if context.focusedpanel == self:
@@ -49,7 +52,7 @@ class Panel:
     def isclicked(self, charx, chary):
         return charx >= self.zone.x and charx < self.zone.x + self.zone.w and chary >= self.zone.y and chary < self.zone.y + self.zone.h
 
-    def handlecontrolclick(self, charx, chary):
+    def handlecontrolclick(self, event, charx, chary):
         controlsminimize = -5  # "□_|x"
         controlssplith = -4
         controlssplitv = -3
@@ -68,11 +71,11 @@ class Panel:
                 print("clicked close")
                 self.zone.remove()
 
-    def handlepanelclick(self, charx, chary):
-        self.handlecontrolclick(charx, chary)
+    def handlepanelclick(self, event, charx, chary):
+        self.handlecontrolclick(event, charx, chary)
 
-    def handlepanelkeydown(self, key):
-        pass
+    def handlepanelkeydown(self, event, keymods):
+        pass #stub, to be customized for each panel type
 
     def draw(self):
         txtarray = []

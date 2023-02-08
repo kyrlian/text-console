@@ -1,10 +1,12 @@
 import sys
 import pygame
 
+from context import Context
 from zone import Zone
 from panel import Panel
-from panelmp3player import Panelmp3player
-from panelclock import Panelclock
+from panelmp3player import PanelMp3Player
+from panelclock import PanelClock
+from paneltextinput import PanelTextInput
 
 # single line borders - https://en.wikipedia.org/wiki/Box_Drawing
 # 	        0 	1 	2 	3 	4 	5 	6 	7 	8 	9 	A 	B 	C 	D 	E 	F
@@ -30,9 +32,6 @@ from panelclock import Panelclock
 # 	▌ 	Left half block
 # 	▐ 	Right half block
 
-class Context:
-    def __init__(self):
-        self.focusedpanel = None
 
 def initcontext():
     return Context()
@@ -41,10 +40,11 @@ def initrootzone(screenw, screenh):
     rootzone = Zone(0, 0, screenw-1, screenh-1)
     zl, zr = rootzone.split("v", .4)
     zlt, zlb = zl.split("h", .2) 
-    zlt.attachpanel(Panelclock("clock"))
-    zlt.split("h", .2,Panelmp3player("mp3",r"D:\music\#Divers"))
+    zlt.attachpanel(PanelClock("clock"))
+    zlt.split("h", .2,PanelMp3Player("mp3",r"D:\music\#Divers"))
     zlb.attachpanel(Panel("Left", ["Big", "Square"]))
     zr.attachpanel(Panel("Right", ["with", "several", "text lines"]))
+    zr.split("h", .2,PanelTextInput("Text editor",r"Lorem ipsum"))
     return rootzone
 
 def pickfont():
@@ -82,7 +82,7 @@ def main():
                 if event.key == pygame.K_ESCAPE:
                     done = True
                 else:
-                    rootzone.handlezonekeydown(context,  event.key)
+                    rootzone.handlezonekeydown(context,  event, pygame.key.get_mods())
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # 1 - left click, 2 - middle click, 3 - right click, 4 - scroll up, 5 - scroll down
                 if event.button == 1:  # left click
@@ -90,12 +90,12 @@ def main():
                     charx = int(clickx / charwidth)
                     chary = int(clicky / lineheigth)
                     print(str(charx) + " "+str(chary))
-                    rootzone.handlezoneclick(context,  event.button, charx, chary)
+                    rootzone.handlezoneclick(context,  event, charx, chary)
         screen.fill(bgcolor)
         rootzone.update()
         rootzone.draw(context,screen, font)
         pygame.display.flip()
-        clock.tick(30)
+        clock.tick(30)# cap to 30 fps
 
 
 if __name__ == '__main__':

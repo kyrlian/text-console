@@ -1,7 +1,7 @@
 from panel import Panel
 from datetime import datetime
 
-class Panelclock(Panel):
+class PanelClock(Panel):
 
     def preferedsizes(self):
         self.sizes=[4,4,4]

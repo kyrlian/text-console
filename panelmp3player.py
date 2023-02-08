@@ -5,7 +5,7 @@ from pygame import mixer
 import pygame
 
 
-class Panelmp3player(Panel):
+class PanelMp3Player(Panel):
 
     def initcontent(self, content):  # use content as source directory
         self.playcontrols = "▣ > || << >>"
@@ -13,8 +13,7 @@ class Panelmp3player(Panel):
         self.contentheigth = 1
         self.paused = True
         self.currentsongnumber = None
-        self.musicdir = content
-        self.listfiles(self.musicdir)
+        self.loaddirectory(content)
         self.listoffset = 0
         self.playingtitle = ""
         mixer.init()
@@ -22,13 +21,24 @@ class Panelmp3player(Panel):
     def preferedsizes(self):
         self.sizes = [3, 10, self.contentheigth+2]
 
-    def listfiles(self, dir):
+    def loaddirectorycontent(self, dir):
+        self.musicdir = dir
         self.songlist = [".."]
         for f in os.listdir(dir):
             if os.path.isdir(os.path.join(dir, f)) or (os.path.isfile(os.path.join(dir, f)) and f.endswith(".mp3")):
                 self.songlist.append(f)
         if len(self.songlist) > 0:
             self.currentsongnumber = 0
+
+    def loaddirectory(self, dir):
+        if os.path.isdir(dir):
+            self.loaddirectorycontent(dir)
+        elif os.path.isdir("."):
+            self.loaddirectorycontent(".")
+        elif os.path.isdir("C:/"):
+            self.loaddirectorycontent("C:/")
+        else:
+            print("No mp3 directory found")
 
     def listfilenames(self):
         displaylist = []
@@ -81,7 +91,7 @@ class Panelmp3player(Panel):
                 self.currentsongnumber == ( self.currentsongnumber +1 ) %  len(self.songlist) 
                 limit-=1
 
-    def handleplayerclick(self, charx, chary):
+    def handleplayerclick(self, event,charx, chary):
         controlsstop = [1]  # "▣ > || << >>"
         controlssplay = [3]
         controlsspause = [5, 6]
@@ -104,7 +114,7 @@ class Panelmp3player(Panel):
                 print("clicked fwd")
                 self.forward()
 
-    def handlesongclick(self, charx, chary):
+    def handlesongclick(self,event, charx, chary):
         linecliked = chary - self.zone.y - 3 + self.listoffset  # skip controls and title, manage list offset
         if linecliked >= 0 and linecliked < len(self.songlist):
             if self.songlist[linecliked].endswith(".mp3"):#music file
@@ -112,23 +122,21 @@ class Panelmp3player(Panel):
                 self.play()
             else:#directory
                 newdir =  os.path.join(self.musicdir, self.songlist[linecliked])
-                if os.path.isdir(newdir):
-                    self.musicdir = newdir
-                    self.listfiles(self.musicdir)
+                self.loaddirectory(newdir)
 
-    def handlepanelclick(self, charx, chary):
-        self.handleplayerclick(charx, chary)
-        self.handlesongclick(charx, chary)
-        self.handlecontrolclick(charx, chary)
+    def handlepanelclick(self, event, charx, chary):
+        self.handleplayerclick(event,charx, chary)
+        self.handlesongclick(event,charx, chary)
+        self.handlecontrolclick(event, charx, chary)
 
-    def handlepanelkeydown(self, key):
-        if key == pygame.K_UP:
+    def handlepanelkeydown(self, event, keymods):
+        if event.key == pygame.K_UP:
             self.listoffset = max(0, self.listoffset-1)
-        elif key == pygame.K_DOWN:
+        elif event.key == pygame.K_DOWN:
             self.listoffset = min(len(self.songlist), self.listoffset+1)
-        elif key == pygame.K_SPACE:
+        elif event.key == pygame.K_SPACE:
             self.pause()
-        elif key == pygame.K_RIGHT:
+        elif event.key == pygame.K_RIGHT:
             self.forward()
-        elif key == pygame.K_LEFT:
+        elif event.key == pygame.K_LEFT:
             self.backward()

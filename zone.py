@@ -47,7 +47,29 @@ class Zone:
                             int(self.w * (1-pct)), self.h, self,newpanel))
         return self.childs[0], self.childs[1]
 
-    def resize(self, pctorabs=None):  # change split pct, or just recalc sizes (if Pct==None)
+    def resizeme(self, pctorabs=None): # change the split of my parent
+        if self.parent != None:
+            if self.parent.childs[0] == self or pctorabs == None: #I am first sub zone
+                zone0size = pctorabs
+            else: #resize info is for first sub zone, but I'm second, convert
+                if pctorabs < 1:#pct
+                        zone0size = 1 - pctorabs
+                else: #abs
+                        if self.parent.splitdir == "h":
+                            zone0size = self.parent.h - pctorabs 
+                        else:
+                            zone0size =  self.parent.w - pctorabs
+            self.parent.resizesplit(zone0size)
+        else:#rootzone - should never apply
+            if pctorabs < 1:#pct
+                self.w = int(self.w * pctorabs)
+                self.h = int(self.h * pctorabs)
+            else: #abs, not really adapted - because usually resize is on 1 axis (the split), for rootzone it doenst apply
+                self.w = int(pctorabs)
+                self.h = int(pctorabs)
+
+
+    def resizesplit(self, pctorabs=None):  # change split pct, or just recalc sizes (if Pct==None)
         if len(self.childs) > 0:#resize splits
             if pctorabs != None:
                 if pctorabs < 1:
@@ -61,25 +83,31 @@ class Zone:
             else:
                 pct = self.splitpct
             if self.splitdir == "h":
+                newsplith = int(self.h * pct)
+                if newsplith < 1:# ensure we have at least h=1 for both zones to keep titlebar
+                    newsplith = 1 #keep title bar of 1st zone
+                elif self.h - newsplith < 1:
+                    newsplith = self.h - 1#keep title bar of 2nd zone
                 self.childs[0].x = self.x
                 self.childs[0].y = self.y
                 self.childs[0].w = self.w
-                self.childs[0].h = int(self.h * pct)
+                self.childs[0].h = newsplith
                 self.childs[1].x = self.x
-                self.childs[1].y = int(self.y + self.h * pct)
+                self.childs[1].y = self.y + newsplith
                 self.childs[1].w = self.w
-                self.childs[1].h = int(self.h * (1-pct))
+                self.childs[1].h = self.h - newsplith
             else:
+                newsplitw = int(self.w * pct)
                 self.childs[0].x = self.x
                 self.childs[0].y = self.y
-                self.childs[0].w = int(self.w * pct)
+                self.childs[0].w = newsplitw
                 self.childs[0].h = self.h
-                self.childs[1].x = int(self.x + self.w * pct)
+                self.childs[1].x = self.x + newsplitw
                 self.childs[1].y = self.y
-                self.childs[1].w = int(self.w * (1-pct))
+                self.childs[1].w = self.w - newsplitw
                 self.childs[1].h = self.h
-            self.childs[0].resize()
-            self.childs[1].resize()
+            self.childs[0].resizesplit()
+            self.childs[1].resizesplit()
 
     def remove(self):
         if self.parent == None:  # if I am root, quit
@@ -95,27 +123,35 @@ class Zone:
                 for i in range(len(sibling.childs)):
                     self.parent.attachzone(sibling.childs[i])
                 # resize parent subzones
-                self.parent.resize(self.parent.splitpct)
+                self.parent.resizesplit(self.parent.splitpct)
             self.parent = None  # remove my parent from me to free the object
 
-    def handlezoneclick(self, context, button, charx, chary):
-        if button == 1:  # left
+    def handlezoneclick(self, context, event, charx, chary):
+        if event.button == 1:  # left
             if self.panel != None:
                 if self.panel.isclicked(charx, chary):
                     context.focusedpanel = self.panel
-                    self.panel.handlepanelclick(charx, chary)
+                    self.panel.handlepanelclick(event, charx, chary)#TODO send even if didnt already have focus ?
                     return True
             for i in range(len(self.childs)):
                 done = self.childs[i].handlezoneclick(
-                    context, button, charx, chary)
+                    context, event, charx, chary)
                 if done:
                     return True
 
-    def handlezonekeydown(self, context, key):
-        if (key == pygame.K_m):
+    def getnextpanel(self):
+        # TODO id next panel (sibling or cousin in next zone)
+        pass
+
+    def handlezonekeydown(self, context, event, keymods):
+        if event.key == pygame.K_m and keymods & pygame.KMOD_CTRL:#Minimize zone
             context.focusedpanel.toggleminimised()
+        elif event.key == pygame.K_TAB and keymods & pygame.KMOD_CTRL:#Pass focus to next panel
+            nextpanel = self.getnextpanel()
+            if nextpanel != None:
+                context.focusedpanel = nextpanel
         else:
-            context.focusedpanel.handlepanelkeydown(key)
+            context.focusedpanel.handlepanelkeydown(event, keymods)
 
     def update(self):
         for i in range(len(self.childs)):
