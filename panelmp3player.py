@@ -31,6 +31,7 @@ class PanelMp3Player(Panel):
             self.currentsongnumber = 0
 
     def loaddirectory(self, dir):
+        #TODO move directory stuff to specific class for reuse with paneltextinput & other
         if os.path.isdir(dir):
             self.loaddirectorycontent(dir)
         elif os.path.isdir("."):
