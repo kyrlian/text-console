@@ -1,3 +1,3 @@
 class Context:
-    def __init__(self):
-        self.focusedpanel = None
+    def __init__(self, focusedpanel):
+        self.focusedpanel = focusedpanel

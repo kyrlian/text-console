@@ -6,6 +6,9 @@ class PanelTextInput(Panel):
 
     def initcontent(self, content):
         self.cursor = Cursor()
+        # TODO handle an x,y content ?
+        # and position the text on display
+        # edit would need to "place" the text at the correct line (not reuild before.after)
         self.textbeforecursor = content
         self.textaftercursor = ""
         self.fulltext = self.textbeforecursor + self.textaftercursor
@@ -20,19 +23,19 @@ class PanelTextInput(Panel):
         return innerzonew - 2 - self.marginleft - self.marginrigth
 
     def updatecontent(self):
-        # TODO add a control line (Open, Save...)
-        # user edits textbeforecursor
-        # handle line breaks
         self.content = []
+        # control line
+            # TODO add a control line (Open, Save...)
+        # text content
         restoftext = self.textbeforecursor + self.cursor.symbol + self.textaftercursor
         linewidth = self.getlinewidth()
-        while len(restoftext) > 0:
+        while len(restoftext) > 0 :
             nbtake = min(linewidth, len(restoftext))
-            # TODO handle Enter unicode key ()
-            # print(event.unicode == "\r" ) Enter
-            # print(event.unicode == "\t" ) Tab
-            line = restoftext[0:nbtake].split("\n")[0]
+            line = restoftext[0:nbtake]
             nbtaken = len(line)
+            if "\n" in line:
+                line = line.split("\n")[0]
+                nbtaken = len(line)+1
             restoftext = restoftext[nbtaken:]
             self.content.append(line.replace("\t","  "))
         self.cursor.cyclecursor()
@@ -53,6 +56,7 @@ class PanelTextInput(Panel):
             self.textaftercursor = self.textaftercursor[1:]
             # backspace doesnt change cursor position in text
         elif event.key == pygame.K_UP:
+            # depends:because of CRLF, same x on previous line is probably not a full line width before
             self.cursor.position -= self.getlinewidth()
         elif event.key == pygame.K_DOWN:
             self.cursor.position += self.getlinewidth()
@@ -64,9 +68,13 @@ class PanelTextInput(Panel):
             self.cursor.position =0
         elif event.key == pygame.K_END:
             self.cursor.position = len(self.fulltext)
-        else:  # Unicode standard is used for string formation
-            self.textbeforecursor += event.unicode
+        elif event.key == pygame.K_RETURN:
+            self.textbeforecursor += "\n"
             self.cursor.position += 1
+        else:  # Unicode standard is used for string formation
+            if event.unicode.isprintable():
+                self.textbeforecursor += event.unicode
+                self.cursor.position += 1
         self.recalctextbeforeafter()
 
     def handletextclick(self, event, charx, chary):

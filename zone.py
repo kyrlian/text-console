@@ -127,17 +127,12 @@ class Zone:
             self.parent = None  # remove my parent from me to free the object
 
     def handlezoneclick(self, context, event, charx, chary):
-        if event.button == 1:  # left
-            if self.panel != None:
-                if self.panel.isclicked(charx, chary):
-                    context.focusedpanel = self.panel
-                    self.panel.handlepanelclick(event, charx, chary)#TODO send even if didnt already have focus ?
-                    return True
+        if self.panel != None and self.panel.isclicked(charx, chary):
+            context.focusedpanel = self.panel
+            self.panel.handlepanelclick(event, charx, chary)#TODO send even if didnt already have focus ?
+        else:
             for i in range(len(self.childs)):
-                done = self.childs[i].handlezoneclick(
-                    context, event, charx, chary)
-                if done:
-                    return True
+                self.childs[i].handlezoneclick(context, event, charx, chary)
 
     def getnextpanel(self):
         # TODO id next panel (sibling or cousin in next zone)

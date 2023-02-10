@@ -1,6 +1,7 @@
 class Cursor():
 
     def __init__(self):
+        # TODO handle an x,y position ?
         self.position = 0  # position of the cursor in the text string
         self.cyclesymbols = ["░", "▓"]  # █░▒▓
         self.symbol = self.cyclesymbols[0]

@@ -32,19 +32,10 @@ from paneltextinput import PanelTextInput
 # 	▌ 	Left half block
 # 	▐ 	Right half block
 
-
-def initcontext():
-    return Context()
-
 def initrootzone(screenw, screenh):
-    rootzone = Zone(0, 0, screenw-1, screenh-1)
-    zl, zr = rootzone.split("v", .4)
-    zlt, zlb = zl.split("h", .2) 
-    zlt.attachpanel(PanelClock("clock"))
-    zlt.split("h", .2,PanelMp3Player("mp3",r"D:\music\#Divers"))
-    zlb.attachpanel(Panel("Left", ["Big", "Square"]))
-    zr.attachpanel(Panel("Right", ["with", "several", "text lines"]))
-    zr.split("h", .2,PanelTextInput("Text editor",r"Lorem ipsum"))
+    rootzone = Zone(0, 0, screenw-1, screenh-1, None, PanelClock("clock"))
+    zl, zr = rootzone.split("v", .4, PanelTextInput("Text editor",r"Lorem ipsum"))
+    zl.split("h", .2,PanelMp3Player("mp3",r"D:\music\#Divers"))
     return rootzone
 
 def pickfont():
@@ -70,7 +61,7 @@ def main():
     maxlines = int(screen.get_height()/lineheigth)
     linewidth = int(screen.get_width()/charwidth)
     rootzone = initrootzone(linewidth, maxlines)
-    context = initcontext()
+    context = Context(rootzone.getnextpanel())
     bgcolor = (30, 30, 30)
     clock = pygame.time.Clock()
     done = False
