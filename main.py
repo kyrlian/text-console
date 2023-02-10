@@ -82,6 +82,7 @@ def main():
                 if event.key == pygame.K_ESCAPE:
                     done = True
                 else:
+                    #TODO handle "key held down" for repeat (ex in text editor)
                     rootzone.handlezonekeydown(context,  event, pygame.key.get_mods())
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # 1 - left click, 2 - middle click, 3 - right click, 4 - scroll up, 5 - scroll down

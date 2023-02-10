@@ -28,9 +28,13 @@ class PanelTextInput(Panel):
         linewidth = self.getlinewidth()
         while len(restoftext) > 0:
             nbtake = min(linewidth, len(restoftext))
-            line = restoftext[0:nbtake]
-            self.content.append(line)
-            restoftext = restoftext[nbtake:]
+            # TODO handle Enter unicode key ()
+            # print(event.unicode == "\r" ) Enter
+            # print(event.unicode == "\t" ) Tab
+            line = restoftext[0:nbtake].split("\n")[0]
+            nbtaken = len(line)
+            restoftext = restoftext[nbtaken:]
+            self.content.append(line.replace("\t","  "))
         self.cursor.cyclecursor()
 
     def recalctextbeforeafter(self):
@@ -60,7 +64,6 @@ class PanelTextInput(Panel):
             self.cursor.position =0
         elif event.key == pygame.K_END:
             self.cursor.position = len(self.fulltext)
-        # TODO Handle enter key... handle new line char ? Test as is w unicode
         else:  # Unicode standard is used for string formation
             self.textbeforecursor += event.unicode
             self.cursor.position += 1
