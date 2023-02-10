@@ -1,12 +1,23 @@
 class Cursor():
 
     def __init__(self):
-        # TODO handle an x,y position ?
-        self.position = 0  # position of the cursor in the text string
+        self.position = [0, 0] #char, line
         self.cyclesymbols = ["░", "▓"]  # █░▒▓
         self.symbol = self.cyclesymbols[0]
         self.cycleframes = 10
         self.cyclecounter = self.cycleframes
+
+    def line(self):
+        return self.position[1]
+
+    def char(self):
+        return self.position[0]
+
+    def setline(self,y):
+        self.position[1]=y
+    
+    def setchar(self,x):
+        self.position[0]=x
 
     def cyclecursor(self):
         self.cyclecounter-=1
