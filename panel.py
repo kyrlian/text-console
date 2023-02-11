@@ -4,7 +4,7 @@
 class Panel:
 
     def __init__(self, title="", initargs="", status="normal"):
-        self.controls = "□_|x"
+        self.controls = "□_|⇅x"
         self.title = title
         self.status = status
         self.zone = None
@@ -40,7 +40,7 @@ class Panel:
             self.status = "minimized"
             self.zone.resizeme(self.sizes[0])
 
-    def getcolor(self, context):
+    def getcolor(self, context, iline):
         if context.focusedpanel == self:
             return (200, 200, 200)
         else:
@@ -50,11 +50,12 @@ class Panel:
         return charx >= self.zone.x and charx < self.zone.x + self.zone.w and chary >= self.zone.y and chary < self.zone.y + self.zone.h
 
     def handlecontrolclick(self, event, charx, chary):
-        controlsminimize = -5  # "□_|x"
-        controlssplith = -4
-        controlssplitv = -3
-        controlsclose = -2
-        if chary == self.zone.y:
+        if self.zone != None and chary == self.zone.y:
+            controlsminimize = -6  # "□_|⇅x"
+            controlssplith = -5
+            controlssplitv = -4
+            controlsswitch = -3
+            controlsclose = -2
             if charx == self.zone.x + self.zone.w + controlsminimize:
                 print("clicked minimize")
                 self.toggleminimised()
@@ -64,6 +65,9 @@ class Panel:
             elif charx == self.zone.x + self.zone.w + controlssplitv:
                 print("clicked split v")
                 self.zone.split("v", .5)
+            elif charx == self.zone.x + self.zone.w + controlsswitch:
+                print("clicked switch")
+                self.zone.switch()
             elif charx == self.zone.x + self.zone.w + controlsclose:
                 print("clicked close")
                 self.zone.remove()

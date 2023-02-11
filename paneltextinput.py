@@ -36,9 +36,10 @@ class PanelTextInput(Panel):
         return innerzonew - 2 - self.marginleft - self.marginrigth
 
     def wordwrap(self,content):
-        #TODO ? problem is when.. 
+        #TODO wordwrap ? problem is when.. 
         # if I do on load, I add char returns to the original file - bad
         # if I do on display I create a temp content array, but cursor is relative to text, and if I wordwrap the lines change, need to move the cursor accordingly
+        # do at display AFTER placing cursor. will need to adjust up/down cursor, we'll see
         return content
     
     def placecursor(self,textlines):
@@ -55,9 +56,9 @@ class PanelTextInput(Panel):
     def updatecontent(self):
         self.content = []
         # control line
-            # TODO add a control line (Open, Save...)
+            # TODO add a control line (Open, Save...) - after filebrowser panel
         # text
-        self.content += self.placecursor(self.textlines)
+        self.content += self.wordwrap(self.placecursor(self.textlines))
         
     def movecursor(self,cursorx,cursory):
         #print(f"movecursor {cursorx},{cursory}")

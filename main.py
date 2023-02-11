@@ -35,9 +35,9 @@ from paneltextinput import PanelTextInput
 # 	▐ 	Right half block
 
 def initrootzone(screenw, screenh):
-    rootzone = Zone(0, 0, screenw-1, screenh-1, None, PanelClock("clock"))
+    rootzone = Zone(0, 0, screenw-1, screenh-1, None, PanelClock("Clock"))
     zl, zr = rootzone.split("v", .4, PanelTextInput("Text editor",["Lorem","ipsum"]))
-    zl.split("h", .2,PanelMp3Player("mp3",r"D:\music\#Divers"))
+    zl.split("h", .2,PanelMp3Player("MP3 Player",r"D:\music\#Divers"))
     return rootzone
 
 def pickfont():

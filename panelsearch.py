@@ -1,5 +1,4 @@
-# TODO
-# serch and display a simple result
+# TODO search and display a simple result
 
 #option1
 # use google or wikipedia API 

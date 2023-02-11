@@ -4,6 +4,7 @@ import sys
 import pygame
 
 from panel import Panel
+from panelmenu import PanelMenu
 
 class Zone:
     def __init__(self, x=0, y=0, w=0, h=0, parent=None, panel=None):
@@ -25,19 +26,16 @@ class Zone:
             return True
         return False
 
-    def removepanel(self):
-        self.panel = None
-
     def attachzone(self, zone):
         self.childs.append(zone)
         zone.parent = self
-        self.removepanel()
+        self.panel = None
 
     def split(self, dir, pct, newpanel=None):
         self.splitdir = dir
         self.splitpct = pct
         if  newpanel == None:
-            newpanel = Panel("temp")
+            newpanel = PanelMenu("Menu")
         if dir == "h":  # horizontal split
             self.attachzone(Zone(self.x, self.y, self.w,
                             int(self.h * pct), self, self.panel))
@@ -64,6 +62,7 @@ class Zone:
                             zone0size =  self.parent.w - pctorabs
             self.parent.resizesplit(zone0size)
         else:#rootzone - should never apply
+            print("I am root")
             if pctorabs < 1:#pct
                 self.w = int(self.w * pctorabs)
                 self.h = int(self.h * pctorabs)
@@ -111,6 +110,13 @@ class Zone:
                 self.childs[1].h = self.h
             self.childs[0].resizesplit()
             self.childs[1].resizesplit()
+
+    def switch(self):#switch me with my sibling zone
+        if self.parent != None:
+            tmp = self.parent.childs[0]
+            self.parent.childs[0] = self.parent.childs[1]
+            self.parent.childs[1] = tmp
+            self.parent.resizesplit()
 
     def remove(self):
         if self.parent == None:  # if I am root, quit
@@ -175,10 +181,8 @@ class Zone:
         for child in self.childs:
             child.draw(context, scr, font)
         if self.panel != None:
-            panelcolor = self.panel.getcolor(context)
             panellines = self.panel.draw()
-            #TODO secondary array for optional linecolor
-            # panellinecolors
             for i in range(len(panellines)):
+                linecolor = self.panel.getcolor(context,i)
                 scr.blit(font.render(
-                    panellines[i], True, panelcolor), (0, i*lineheigth))
+                    panellines[i], True, linecolor), (0, i*lineheigth))
