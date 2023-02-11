@@ -1,17 +1,31 @@
-from panel import Panel
 import pygame
+import os
+from panel import Panel
 from cursor import Cursor
+from texthelper import TextHelper 
 
 class PanelTextInput(Panel):
 
-    def initcontent(self, content):
+    def initcontent(self, fileorteext=["Loading...","Please wait..."]):
         self.cursor = Cursor()
-        self.textlines=["l1","l2"]
-        self.textbeforecursor = content
-        self.textaftercursor = ""
-        self.fulltext = self.textbeforecursor + self.textaftercursor
+        self.textlines=self.loadcontent(fileorteext)
+        #self.textbeforecursor = content
+        #self.textaftercursor = ""
+        #self.fulltext = self.textbeforecursor + self.textaftercursor
         self.marginleft = 1
         self.marginrigth = 1
+    
+    def loadcontent(self,fileorteext):
+        if os.path.isfile(fileorteext):
+            text_file = os.open(fileorteext,'r')
+            lines = text_file.readlines()
+            text_file.close()
+            return lines
+        else:
+            if TextHelper.ismultiline(fileorteext):
+                return fileorteext
+            else:
+                return [fileorteext]
 
     def getlinewidth(self):
         if self.zone != None:  # self.zone is None during construction
@@ -20,6 +34,10 @@ class PanelTextInput(Panel):
             innerzonew = 10
         return innerzonew - 2 - self.marginleft - self.marginrigth
 
+    def wordwrap(self,content):
+        #TODO
+        return content
+    
     def updatecontent(self):
         self.content = []
         # control line
@@ -36,77 +54,83 @@ class PanelTextInput(Panel):
         #         nbtaken = len(line)+1
         #     restoftext = restoftext[nbtaken:]
         #     self.content.append(line.replace("\t","  "))
-        self.content = self.content + self.textlines
+        self.content = self.content + self.wordwrap(self.textlines)
         self.cursor.cyclecursor()
 
-    def recalctextbeforeafter(self):
-        self.fulltext = self.textbeforecursor + self.textaftercursor
-        self.cursor.position = min(max(0, self.cursor.position), len(self.fulltext))
-        self.textbeforecursor = self.fulltext[0:self.cursor.position]
-        self.textaftercursor = self.fulltext[self.cursor.position:]
-        self.fulltext = self.textbeforecursor + self.textaftercursor
+    # def recalctextbeforeafter(self):
+    #     self.fulltext = self.textbeforecursor + self.textaftercursor
+    #     self.cursor.position = min(max(0, self.cursor.position), len(self.fulltext))
+    #     self.textbeforecursor = self.fulltext[0:self.cursor.position]
+    #     self.textaftercursor = self.fulltext[self.cursor.position:]
+    #     self.fulltext = self.textbeforecursor + self.textaftercursor
 
-    def placecharatcursor(self,c):
-        cursorx=self.cursor.char()
-        cursory=self.cursor.line()
-        tmpline = self.textlines[cursory]
-        newline = tmpline[0:cursorx] + c + tmpline[cursorx:]
-        self.cursor.position[0] +=1
-        self.textlines[cursory] = newline
+    def movecursor(self,cursorx,cursory):
+        #print(f"movecursor {cursorx},{cursory}")
+        newy = min(max(0,cursory),len(self.textlines)-1)
+        self.cursor.setline(newy)
+        self.cursor.setchar(min(max(0,cursorx),len(self.textlines[newy])))
 
-    def backspace(self):
-        cursorx=self.cursor.char()
-        cursory=self.cursor.line()
-        tmpline = self.textlines[cursory]
-        #todo if cursor at 0 merge lines
-        newline = tmpline[0:cursorx-1] + tmpline[cursorx:]
-        self.cursor.position[0] = max(0,self.cursor.position[0]-1)
-        self.textlines[cursory] = newline
+    def insertlineat(self,cursory):
+        self.textlines.insert(cursory+1,"")
+        self.movecursor(0,cursory+1)
 
+    def insertcharat(self,char,y,x):
+        tmpline = self.textlines[y]
+        self.textlines[y] =  tmpline[0:x] + char + tmpline[x:]
+        self.movecursor(x+1,y)
+
+    def rmcharat(self,y,x):
+        tmpline = self.textlines[y]
+        self.textlines[y] = tmpline[0:x-1] + tmpline[x:]
+        self.movecursor(x-1,y)
+
+    def joinlines(self,y1,y2):
+        self.textlines[y1] = self.textlines[y1]+self.textlines[y2]
+        self.textlines.pop(y2)
+        
     def handlepanelkeydown(self, event, keymods):
-        # Check for backspace
+        cursorx=self.cursor.char()
+        cursory=self.cursor.line()
+        print(f"handlepanelkeydown: cursory:{cursory}, cursorx:{cursorx}.")
         if event.key == pygame.K_BACKSPACE:
-            #self.textbeforecursor = self.textbeforecursor[:-1]# get text input from 0 to -1 i.e. end.
-            #self.cursor.position -= 1
-            self.backspace()
+            if cursorx > 0:
+                self.rmcharat(cursory,cursorx-1)
+            else:
+                self.joinlines(cursory-1,cursory)
         elif event.key == pygame.K_DELETE:
-            self.textaftercursor = self.textaftercursor[1:]
-            # backspace doesnt change cursor position in text
+            if cursorx < len(self.textlines[cursory]):
+                self.rmcharat(cursory,cursorx)
+            else:
+                self.joinlines(cursory,cursory+1)
         elif event.key == pygame.K_UP:
-            # depends:because of CRLF, same x on previous line is probably not a full line width before
-            self.cursor.position -= self.getlinewidth()
+            self.movecursor(cursorx,cursory-1)
         elif event.key == pygame.K_DOWN:
-            self.cursor.position += self.getlinewidth()
+            self.movecursor(cursorx,cursory+1)
         elif event.key == pygame.K_LEFT:
-            # self.cursor.position -= 1
-            self.cursor.position[0] = max(self.cursor.position[0]-1, 0)
+            if cursorx > 0:
+                self.movecursor(cursorx-1,cursory)
+            else:
+                self.movecursor(cursorx,cursory-1)
         elif event.key == pygame.K_RIGHT:
-            self.cursor.position[0] = min(self.cursor.position[0]-1, len(self.textlines[self.cursor.position[1]])-1)
-            # self.cursor.position += 1
+            if cursorx < len(self.textlines[cursory]):
+                self.movecursor(cursorx+1,cursory)
+            else:
+                self.movecursor(cursorx,cursory+1)
         elif event.key == pygame.K_HOME:
-            self.cursor.position =[0,0]
+            self.movecursor(0,0)
         elif event.key == pygame.K_END:
-            self.cursor.position = len(self.fulltext)
+             self.movecursor( len(self.textlines[ len(self.textlines)-1]) ,len(self.textlines))
         elif event.key == pygame.K_RETURN:
-            self.textbeforecursor += "\n"
-            self.cursor.position += 1
+            self.insertlineat(cursory)
         else:  # Unicode standard is used for string formation
             if event.unicode.isprintable():
-                self.placecharatcursor(event.unicode)
-                #self.textbeforecursor += event.unicode
-                #self.cursor.position += 1
-        #self.recalctextbeforeafter()
+                self.insertcharat(event.unicode,cursory,cursorx)
 
     def handletextclick(self, event, charx, chary):
         # calculate char line and col
-        linecliked = chary - self.zone.y - 2  # add -x control lines if needed
-        columncliked = charx - self.zone.x - 2
-        # reposition cursor in text
-        self.cursor.position[1] = min(linecliked, len(self.textlines)-1)
-        self.cursor.position[0] = min(columncliked, len(self.textlines[self.cursor.position[1]])-1)
-        #linewidth = self.getlinewidth()
-        #self.cursor.position = linecliked * linewidth + columncliked
-        #self.recalctextbeforeafter()
+        cursory = chary - self.zone.y - 2  # add -x control lines if needed
+        cursorx = charx - self.zone.x - 2
+        self.movecursor(cursorx,cursory)
 
     def handlepanelclick(self, event, charx, chary):
         self.handletextclick(event, charx, chary)

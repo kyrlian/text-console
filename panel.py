@@ -102,14 +102,7 @@ class Panel:
                     txtarray.append(" "*self.zone.x+"║"+self.content +
                                     " "*(self.zone.w-2-len(self.content))+"║")
         except:
-            print("self.contentheigth:"+str(self.contentheigth))
-            print("len(self.content):"+str(len(self.content)))
-            print("len(self.content[0]):"+str(len(self.content[0])))
-            print("recalc contentheigth")
             self.updatecontentheigth()
-            print("self.contentheigth:"+str(self.contentheigth))   
-            print("self.content:")
-            print(self.content)
             raise
         # side borders after content
         for i in range(self.zone.h-2-self.contentheigth):

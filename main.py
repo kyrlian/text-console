@@ -77,11 +77,11 @@ def main():
                     rootzone.handlezonekeydown(context,  event, pygame.key.get_mods())
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # 1 - left click, 2 - middle click, 3 - right click, 4 - scroll up, 5 - scroll down
-                if event.button == 1:  # left click
+                # if event.button == 1:  # left click
                     clickx, clicky = pygame.mouse.get_pos()
                     charx = int(clickx / charwidth)
                     chary = int(clicky / lineheigth)
-                    print(str(charx) + " "+str(chary))
+                    print(f"Cliked {charx},{chary}")
                     rootzone.handlezoneclick(context,  event, charx, chary)
         screen.fill(bgcolor)
         rootzone.update()

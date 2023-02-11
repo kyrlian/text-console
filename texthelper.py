@@ -1,4 +1,8 @@
-class TxtHelper:
+class TextHelper:
+
+    def ismultiline(ar):
+        return len(ar) > 0 and len(ar[0]) > 1
+
     def getline(ar, y):
         if (y < len(ar)):
             return ar[y]
@@ -14,11 +18,11 @@ class TxtHelper:
         o = []
         for y in range(max(len(a), len(b))):
             to = ""
-            la = TxtHelper.getline(a, y)
-            lb = TxtHelper.getline(b, y)
+            la = TextHelper.getline(a, y)
+            lb = TextHelper.getline(b, y)
             for x in range(max(len(la), len(lb))):
-                tto = TxtHelper.getchar(a, x, y)
-                cb = TxtHelper.getchar(b, x, y)
+                tto = TextHelper.getchar(a, x, y)
+                cb = TextHelper.getchar(b, x, y)
                 if cb != "" and cb != " ":
                     tto = cb
                 to += tto
@@ -28,5 +32,5 @@ class TxtHelper:
     def mergearrays(aa):
         o = aa[0]
         for i in range(1, len(aa), 1):
-            o = TxtHelper.mergetwoarrays(o, aa[i])
+            o = TextHelper.mergetwoarrays(o, aa[i])
         return o
