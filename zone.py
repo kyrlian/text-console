@@ -1,3 +1,5 @@
+#kyrlian, 2023
+
 import sys
 import pygame
 
@@ -13,6 +15,7 @@ class Zone:
         self.panel = panel
         self.childs = []
         self.attachpanel(panel)
+        self.panelist = []
 
     def attachpanel(self, panel):
         if panel != None:
@@ -120,8 +123,8 @@ class Zone:
             sibling = self.parent.childs[0]
             if not self.parent.attachpanel(sibling.panel):
                 self.parent.childs = []
-                for i in range(len(sibling.childs)):
-                    self.parent.attachzone(sibling.childs[i])
+                for nephew in sibling.childs:
+                    self.parent.attachzone(nephew)
                 # resize parent subzones
                 self.parent.resizesplit(self.parent.splitpct)
             self.parent = None  # remove my parent from me to free the object
@@ -131,36 +134,51 @@ class Zone:
             context.focusedpanel = self.panel
             self.panel.handlepanelclick(event, charx, chary)#TODO send even if didnt already have focus ?
         else:
-            for i in range(len(self.childs)):
-                self.childs[i].handlezoneclick(context, event, charx, chary)
+            for child in self.childs:
+                child.handlezoneclick(context, event, charx, chary)
 
-    def getnextpanel(self):
-        # TODO id next panel (sibling or cousin in next zone)
-        pass
-
+    def listpanels(self):
+        from functools import reduce
+        from operator import iconcat
+        if self.panel != None:
+            return [self.panel]
+        else:
+            return list(reduce(iconcat,map(lambda c: c.listpanels(),self.childs)))
+        
+    def getnextpanel(self,panel=None):
+        self.panelist=self.listpanels()
+        if panel != None:
+            i = self.panelist.index(panel)
+            if i != None:
+                return self.panelist [(i+1)%len(self.panelist)]
+        else:
+            return self.panelist[0]
+        
     def handlezonekeydown(self, context, event, keymods):
         if event.key == pygame.K_m and keymods & pygame.KMOD_CTRL:#Minimize zone
             context.focusedpanel.toggleminimised()
-        elif event.key == pygame.K_TAB and keymods & pygame.KMOD_CTRL:#Pass focus to next panel
-            nextpanel = self.getnextpanel()
+        elif event.key == pygame.K_TAB and keymods & pygame.KMOD_CTRL:#Pass focus to next panel in zone
+            nextpanel = self.getnextpanel(context.focusedpanel)
             if nextpanel != None:
                 context.focusedpanel = nextpanel
         else:
             context.focusedpanel.handlepanelkeydown(event, keymods)
 
     def update(self):
-        for i in range(len(self.childs)):
-            self.childs[i].update()
+        for child in self.childs:
+            child.update()
         if self.panel != None:
             self.panel.update()
 
     def draw(self, context, scr, font):
         lineheigth = font.get_linesize()
-        for i in range(len(self.childs)):
-            self.childs[i].draw(context, scr, font)
+        for child in self.childs:
+            child.draw(context, scr, font)
         if self.panel != None:
             panelcolor = self.panel.getcolor(context)
             panellines = self.panel.draw()
+            #TODO secondary array for optional linecolor
+            # panellinecolors
             for i in range(len(panellines)):
                 scr.blit(font.render(
                     panellines[i], True, panelcolor), (0, i*lineheigth))

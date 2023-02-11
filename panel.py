@@ -1,15 +1,16 @@
 
+#kyrlian, 2023
+
 class Panel:
 
-    def __init__(self, title="", content="", status="normal"):
+    def __init__(self, title="", initargs="", status="normal"):
         self.controls = "□_|x"
         self.title = title
         self.status = status
         self.zone = None
         self.sizes = [.1, .5, .9]
-        self.content = content
-        self.contentismultiline = False
-        self.initcontent(content)
+        self.content = []
+        self.initcontent(initargs)
         self.update()
 
     def attachtozone(self, zone):
@@ -18,25 +19,15 @@ class Panel:
     def preferedsizes(self):
         pass  # stub, to be customized for each panel type
 
-    def initcontent(self, content):
+    def initcontent(self, initargs):
         pass  # stub, to be customized for each panel type
 
     def updatecontent(self):
         pass  # stub, to be customized for each panel type
 
-    def updatecontentheigth(self):
-        self.contentheigth = 0
-        self.contentismultiline = False
-        if len(self.content) > 0:
-            self.contentheigth = 1
-            if len(self.content[0]) > 1:  # if txt is an array (multiline)
-                self.contentheigth = len(self.content)
-                self.contentismultiline = True
-
     def update(self):
         self.updatecontent()
-        self.updatecontentheigth()
-        self.preferedsizes()  # is after init content, so it can use self.contentheigth
+        self.preferedsizes()  # is after init content, so it can use len(self.content)
 
     def toggleminimised(self):
         if self.status == "minimized":
@@ -92,20 +83,14 @@ class Panel:
                         len(self.controls))+self.controls+"╗")  # top border
         # side borders plus content
         try:
-            if self.contentheigth > 0:
-                if self.contentismultiline:  # if txt is an array (multiline)
-                    for ti in range(self.contentheigth):
-                        txtline = self.content[ti]
-                        txtarray.append(" "*self.zone.x+"║"+txtline +
-                                        " "*(self.zone.w-2-len(txtline))+"║")
-                else:
-                    txtarray.append(" "*self.zone.x+"║"+self.content +
-                                    " "*(self.zone.w-2-len(self.content))+"║")
+            for txtline in self.content:
+                txtarray.append(" "*self.zone.x+"║"+txtline +
+                                " "*(self.zone.w-2-len(txtline))+"║")
         except:
-            self.updatecontentheigth()
+            #for debuging draw errors
             raise
         # side borders after content
-        for i in range(self.zone.h-2-self.contentheigth):
+        for i in range(self.zone.h-2-len(self.content)):
             txtarray.append(" "*self.zone.x+"║"+" "*(self.zone.w-2)+"║")
         # bottom border
         txtarray.append(" "*self.zone.x+"╚"+"═" *

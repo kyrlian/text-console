@@ -1,3 +1,5 @@
+#kyrlian, 2023
+
 from panel import Panel
 from datetime import datetime
 

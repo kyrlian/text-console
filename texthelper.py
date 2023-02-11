@@ -1,7 +1,6 @@
-class TextHelper:
+#kyrlian, 2023
 
-    def ismultiline(ar):
-        return len(ar) > 0 and len(ar[0]) > 1
+class TextHelper:
 
     def getline(ar, y):
         if (y < len(ar)):

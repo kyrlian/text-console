@@ -1,3 +1,5 @@
+#kyrlian, 2023
+
 import sys
 import pygame
 
@@ -34,7 +36,7 @@ from paneltextinput import PanelTextInput
 
 def initrootzone(screenw, screenh):
     rootzone = Zone(0, 0, screenw-1, screenh-1, None, PanelClock("clock"))
-    zl, zr = rootzone.split("v", .4, PanelTextInput("Text editor",r"Lorem ipsum"))
+    zl, zr = rootzone.split("v", .4, PanelTextInput("Text editor",["Lorem","ipsum"]))
     zl.split("h", .2,PanelMp3Player("mp3",r"D:\music\#Divers"))
     return rootzone
 

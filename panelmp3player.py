@@ -1,5 +1,6 @@
+#kyrlian, 2023
+
 import os
-import glob
 from panel import Panel
 from pygame import mixer
 import pygame
@@ -7,19 +8,18 @@ import pygame
 
 class PanelMp3Player(Panel):
 
-    def initcontent(self, content):  # use content as source directory
+    def initcontent(self, initargs):  # use content[0] as source directory
         self.playcontrols = "▣ > || << >>"
         self.content = self.playcontrols
-        self.contentheigth = 1
         self.paused = True
         self.currentsongnumber = None
-        self.loaddirectory(content)
+        self.loaddirectory(initargs)
         self.listoffset = 0
         self.playingtitle = ""
         mixer.init()
 
     def preferedsizes(self):
-        self.sizes = [3, 10, self.contentheigth+2]
+        self.sizes = [3, 10, len(self.content)+2]
 
     def loaddirectorycontent(self, dir):
         self.musicdir = dir
@@ -32,7 +32,7 @@ class PanelMp3Player(Panel):
 
     def loaddirectory(self, dir):
         #TODO move directory stuff to specific class for reuse with paneltextinput & other
-        if os.path.isdir(dir):
+        if dir !=None and isinstance(dir, str) and os.path.isdir(dir):
             self.loaddirectorycontent(dir)
         elif os.path.isdir("."):
             self.loaddirectorycontent(".")
@@ -55,6 +55,7 @@ class PanelMp3Player(Panel):
         if not self.paused and not mixer.music.get_busy():
             self.forward()
             self.play()
+        #TODO move file list to secondary panel
         self.content = [self.playcontrols, self.playingtitle]+self.listfilenames()
 
     def stop(self):
