@@ -101,10 +101,10 @@ class PanelMp3Player(Panel):
     def forward(self):
         """ go to next song """
         if self.currentsongnumber is not None:
-            self.currentsongnumber == ( self.currentsongnumber +1 ) %  len(self.songlist) #loop
-            limit =  len(self.songlist)
+            self.currentsongnumber = ( self.currentsongnumber +1 ) %  len(self.songlist) #loop
+            limit = len(self.songlist)
             while not self.songlist[self.currentsongnumber].endswith(".mp3") and limit > 0:#music file
-                self.currentsongnumber == ( self.currentsongnumber +1 ) %  len(self.songlist) 
+                self.currentsongnumber = ( self.currentsongnumber +1 ) %  len(self.songlist)
                 limit-=1
 
     def initcontrols(self):
