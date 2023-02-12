@@ -1,9 +1,14 @@
+""" clock panel """
 #kyrlian, 2023
 
-from panel import Panel
 from datetime import datetime
+from panel import Panel
 
 class PanelClock(Panel):
+    """ clock panel """
+
+    def __init__(self, title="Clock", initargs=None, status="normal"):
+        Panel.__init__(self, title, initargs, status)
 
     def preferedsizes(self):
         self.sizes=[4,4,4]

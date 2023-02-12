@@ -1,12 +1,14 @@
+""" zone class """
 #kyrlian, 2023
 
 import sys
+from functools import reduce
+from operator import iconcat
 import pygame
-
-from panel import Panel
 from panelmenu import PanelMenu
 
 class Zone:
+    """ zone class """
     def __init__(self, x=0, y=0, w=0, h=0, parent=None, panel=None):
         self.x = x
         self.y = y
@@ -15,11 +17,14 @@ class Zone:
         self.parent = parent
         self.panel = panel
         self.childs = []
+        self.splitdir = None
+        self.splitpct = .5
         self.attachpanel(panel)
         self.panelist = []
 
     def attachpanel(self, panel):
-        if panel != None:
+        """ attach panel to zone """
+        if panel is not None:
             self.panel = panel
             self.childs = []
             panel.attachtozone(self)
@@ -27,16 +32,18 @@ class Zone:
         return False
 
     def attachzone(self, zone):
+        """  attach child zone """
         self.childs.append(zone)
         zone.parent = self
         self.panel = None
 
-    def split(self, dir, pct, newpanel=None):
-        self.splitdir = dir
+    def split(self, direction, pct, newpanel=None):
+        """  split zone in two subzone, can set a panel for second zone """
+        self.splitdir = direction
         self.splitpct = pct
-        if  newpanel == None:
+        if  newpanel is None:
             newpanel = PanelMenu("Menu")
-        if dir == "h":  # horizontal split
+        if direction == "h":  # horizontal split
             self.attachzone(Zone(self.x, self.y, self.w,
                             int(self.h * pct), self, self.panel))
             self.attachzone(Zone(self.x, int(self.y + self.h * pct),
@@ -49,31 +56,29 @@ class Zone:
         return self.childs[0], self.childs[1]
 
     def resizeme(self, pctorabs=None): # change the split of my parent
-        if self.parent != None:
-            if self.parent.childs[0] == self or pctorabs == None: #I am first sub zone
+        """  resize this zone """
+        if self.parent is not None:
+            if self.parent.childs[0] == self or pctorabs is None: #I am first sub zone
                 zone0size = pctorabs
             else: #resize info is for first sub zone, but I'm second, convert
                 if pctorabs < 1:#pct
-                        zone0size = 1 - pctorabs
+                    zone0size = 1 - pctorabs
                 else: #abs
-                        if self.parent.splitdir == "h":
-                            zone0size = self.parent.h - pctorabs 
-                        else:
-                            zone0size =  self.parent.w - pctorabs
+                    if self.parent.splitdir == "h":
+                        zone0size = self.parent.h - pctorabs 
+                    else:
+                        zone0size =  self.parent.w - pctorabs
             self.parent.resizesplit(zone0size)
         else:#rootzone - should never apply
             print("I am root")
-            if pctorabs < 1:#pct
-                self.w = int(self.w * pctorabs)
-                self.h = int(self.h * pctorabs)
-            else: #abs, not really adapted - because usually resize is on 1 axis (the split), for rootzone it doenst apply
-                self.w = int(pctorabs)
-                self.h = int(pctorabs)
 
+    #TODO handle zone resise with mouse drag
 
     def resizesplit(self, pctorabs=None):  # change split pct, or just recalc sizes (if Pct==None)
+        """  resize the splits of this zone """
         if len(self.childs) > 0:#resize splits
-            if pctorabs != None:
+            pct = self.splitpct
+            if pctorabs is not None:
                 if pctorabs < 1:
                     pct = pctorabs
                 else: #abs
@@ -82,8 +87,6 @@ class Zone:
                     else:
                         pct = pctorabs / self.w
                 self.splitpct = pct
-            else:
-                pct = self.splitpct
             if self.splitdir == "h":
                 newsplith = int(self.h * pct)
                 if newsplith < 1:# ensure we have at least h=1 for both zones to keep titlebar
@@ -112,14 +115,16 @@ class Zone:
             self.childs[1].resizesplit()
 
     def switch(self):#switch me with my sibling zone
-        if self.parent != None:
+        """  switch the subzones """
+        if self.parent is not None:
             tmp = self.parent.childs[0]
             self.parent.childs[0] = self.parent.childs[1]
             self.parent.childs[1] = tmp
             self.parent.resizesplit()
 
     def remove(self):
-        if self.parent == None:  # if I am root, quit
+        """  remove me from my parent """
+        if self.parent is None:  # if I am root, quit
             print("I am root")
             pygame.quit()
             sys.exit()
@@ -135,8 +140,10 @@ class Zone:
                 self.parent.resizesplit(self.parent.splitpct)
             self.parent = None  # remove my parent from me to free the object
 
+
     def handlezoneclick(self, context, event, charx, chary):
-        if self.panel != None and self.panel.isclicked(charx, chary):
+        """ detect panel clicked, and manage click """
+        if self.panel is not None and self.panel.isclicked(charx, chary):
             context.focusedpanel = self.panel
             self.panel.handlepanelclick(event, charx, chary)#TODO send even if didnt already have focus ?
         else:
@@ -144,45 +151,43 @@ class Zone:
                 child.handlezoneclick(context, event, charx, chary)
 
     def listpanels(self):
-        from functools import reduce
-        from operator import iconcat
-        if self.panel != None:
+        """  list sub panels """
+        if self.panel is not None:
             return [self.panel]
-        else:
-            return list(reduce(iconcat,map(lambda c: c.listpanels(),self.childs)))
+        return list(reduce(iconcat,map(lambda c: c.listpanels(),self.childs)))
         
     def getnextpanel(self,panel=None):
+        """ get next panel  """
         self.panelist=self.listpanels()
-        if panel != None:
-            i = self.panelist.index(panel)
-            if i != None:
-                return self.panelist [(i+1)%len(self.panelist)]
-        else:
-            return self.panelist[0]
+        if panel is not None:
+            idx = self.panelist.index(panel)
+            if idx is not None:
+                return self.panelist [(idx+1)%len(self.panelist)]
+        return self.panelist[0]
         
     def handlezonekeydown(self, context, event, keymods):
-        if event.key == pygame.K_m and keymods & pygame.KMOD_CTRL:#Minimize zone
-            context.focusedpanel.toggleminimised()
-        elif event.key == pygame.K_TAB and keymods & pygame.KMOD_CTRL:#Pass focus to next panel in zone
+        """  handle key down in zone, and pass to focused panel """
+        if event.key == pygame.K_TAB and keymods & pygame.KMOD_CTRL:#Pass focus to next panel in zone
             nextpanel = self.getnextpanel(context.focusedpanel)
-            if nextpanel != None:
+            if nextpanel is not None:
                 context.focusedpanel = nextpanel
         else:
             context.focusedpanel.handlepanelkeydown(event, keymods)
 
     def update(self):
+        """  update panel or child zones """
         for child in self.childs:
             child.update()
-        if self.panel != None:
+        if self.panel is not None:
             self.panel.update()
 
     def draw(self, context, scr, font):
+        """  draw zone """
         lineheigth = font.get_linesize()
         for child in self.childs:
             child.draw(context, scr, font)
-        if self.panel != None:
+        if self.panel is not None:
             panellines = self.panel.draw()
-            for i in range(len(panellines)):
-                linecolor = self.panel.getcolor(context,i)
-                scr.blit(font.render(
-                    panellines[i], True, linecolor), (0, i*lineheigth))
+            for idx, line in enumerate(panellines):
+                linecolor = self.panel.getcolor(context,idx)
+                scr.blit(font.render(line, True, linecolor), (0, idx*lineheigth))

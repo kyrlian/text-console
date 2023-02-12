@@ -1,3 +1,4 @@
+""" menu panel """
 #kyrlian, 2023
 
 from panel import Panel
@@ -6,28 +7,31 @@ from panelclock import PanelClock
 from paneltextinput import PanelTextInput
 
 class PanelMenu(Panel):
-
+    """ menu panel """
     choices=[]
     choices.append(("Clock",PanelClock,""))
     choices.append(("MP3 Player",PanelMp3Player,r"D:\music\#Divers"))
     choices.append(("Text Editor",PanelTextInput,["Lorem","ipsum"]))
-    
-    def initcontent(self, initargs=None):
-        self.content = []
+
+    def __init__(self, title="Menu", initargs=None, status="normal"):
+        Panel.__init__(self, title, initargs, status)
         for txt,panelclass,initargs in PanelMenu.choices:
             self.content.append(txt)
 
     def replaceme(self,panelclass,title,arg):
-        self.zone.attachpanel(panelclass(title,arg))
-        self.zone = None
+        """ replace this panel with chosen one """
+        if self.zone is not None:
+            self.zone.attachpanel(panelclass(title,arg))
+            self.zone = None
 
     def handlechoiceclick(self, event,charx, chary):
-        for i in range(len(PanelMenu.choices)):
-            title,panelclass,arg = PanelMenu.choices[i]
-            if chary == self.zone.y + 1+ i:
-                print(f"clicked {title}")
-                self.replaceme(panelclass,title,arg)
-                return
+        """ handle click on choice """
+        if self.zone is not None:
+            for idx, (title,panelclass,arg) in enumerate(PanelMenu.choices):
+                if chary == self.zone.y + 1 + idx:
+                    print(f"clicked {title}")
+                    self.replaceme(panelclass,title,arg)
+                    return
 
     def handlepanelclick(self, event, charx, chary):
         self.handlechoiceclick(event,charx, chary)

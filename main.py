@@ -1,3 +1,4 @@
+""" main """
 #kyrlian, 2023
 
 import sys
@@ -5,7 +6,6 @@ import pygame
 
 from context import Context
 from zone import Zone
-from panel import Panel
 from panelmp3player import PanelMp3Player
 from panelclock import PanelClock
 from paneltextinput import PanelTextInput
@@ -35,61 +35,65 @@ from paneltextinput import PanelTextInput
 # 	▐ 	Right half block
 
 def initrootzone(screenw, screenh):
+    """ init root zone """
     rootzone = Zone(0, 0, screenw-1, screenh-1, None, PanelClock("Clock"))
     zl, zr = rootzone.split("v", .4, PanelTextInput("Text editor",["Lorem","ipsum"]))
     zl.split("h", .2,PanelMp3Player("MP3 Player",r"D:\music\#Divers"))
     return rootzone
 
 def pickfont():
-    available = pygame.font.get_fonts()
-    print("Available fonts : "+str(available))
+    """ pick a mono font """
+    availables = pygame.font.get_fonts()
+    print("Available fonts : "+str(availables))
     candidates = ["lucidaconsole","ibmplexmono"]
-    for f in candidates:
-        if f in available:
-            print("Selected candidate font : "+f)
-            return pygame.font.SysFont(f, 15)
-    for f in available:
-        if "mono" in f:
-            print("Selected mono font : "+f)
-            return pygame.font.SysFont(f, 15)
+    for candidate in candidates:
+        if candidate in availables:
+            print("Selected candidate font : "+candidate)
+            return pygame.font.SysFont(candidate, 15)
+    for available in availables:
+        if "mono" in available:
+            print("Selected mono font : "+available)
+            return pygame.font.SysFont(available, 15)
+    return None
 
 def main():
+    """ main """
     displayinfo = pygame.display.Info()
     screen = pygame.display.set_mode(
         (displayinfo.current_w, displayinfo.current_h), pygame.FULLSCREEN)
     font = pickfont()
-    lineheigth = font.get_linesize()
-    charwidth, charheigth = font.size(" ")
-    maxlines = int(screen.get_height()/lineheigth)
-    linewidth = int(screen.get_width()/charwidth)
-    rootzone = initrootzone(linewidth, maxlines)
-    context = Context(rootzone.getnextpanel())
-    bgcolor = (30, 30, 30)
-    clock = pygame.time.Clock()
-    done = False
-    while not done:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                done = True
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+    if font is not None:
+        lineheigth = font.get_linesize()
+        charwidth, charheigth = font.size(" ")
+        maxlines = int(screen.get_height()/lineheigth)
+        linewidth = int(screen.get_width()/charwidth)
+        rootzone = initrootzone(linewidth, maxlines)
+        context = Context(rootzone.getnextpanel())
+        bgcolor = (30, 30, 30)
+        clock = pygame.time.Clock()
+        done = False
+        while not done:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
                     done = True
-                else:
-                    #TODO handle "key held down" for repeat (ex in text editor)
-                    rootzone.handlezonekeydown(context,  event, pygame.key.get_mods())
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                # 1 - left click, 2 - middle click, 3 - right click, 4 - scroll up, 5 - scroll down
-                # if event.button == 1:  # left click
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        done = True
+                    else:
+                        #TODO handle "key held down" for repeat (ex in text editor)
+                        rootzone.handlezonekeydown(context,  event, pygame.key.get_mods())
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    # 1 - left click, 2 - middle click, 3 - right click, 4 - scroll up, 5 - scroll down
                     clickx, clicky = pygame.mouse.get_pos()
                     charx = int(clickx / charwidth)
                     chary = int(clicky / lineheigth)
                     print(f"Cliked {charx},{chary}")
                     rootzone.handlezoneclick(context,  event, charx, chary)
-        screen.fill(bgcolor)
-        rootzone.update()
-        rootzone.draw(context,screen, font)
-        pygame.display.flip()
-        clock.tick(30)# cap to 30 fps
+            screen.fill(bgcolor)
+            rootzone.update()
+            rootzone.draw(context,screen, font)
+            pygame.display.flip()
+            clock.tick(30)# cap to 30 fps
 
 
 if __name__ == '__main__':
