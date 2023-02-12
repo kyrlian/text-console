@@ -107,6 +107,16 @@ class PanelMp3Player(Panel):
                 self.currentsongnumber == ( self.currentsongnumber +1 ) %  len(self.songlist) 
                 limit-=1
 
+    def initcontrols(self):
+        #TODO finis control integration
+        playercontrols=[]#key,symbol,pos,command
+        playercontrols.append((None,"▣",[1],self.stop))
+        playercontrols.append((None,">",[3],self.play))
+        playercontrols.append((pygame.K_SPACE,"||",[5,6],self.pause))
+        playercontrols.append((pygame.K_RIGHT,"<<",[8,9],self.backward))
+        playercontrols.append((pygame.K_LEFT,">>",[11,12],self.forward))
+
+
     def handleplayerclick(self, event,charx, chary):
         """ handle click on player controls """
         # TODO merge control click/key config (see map in PanelMenu)

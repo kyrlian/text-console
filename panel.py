@@ -86,11 +86,19 @@ class Panel:
 
     def handlecontrolkeydown(self, event, keymods):
         """  handle control keys """
-        if keymods & pygame.KMOD_CTRL:#CTRL keys
+        if self.zone is not None and keymods & pygame.KMOD_CTRL:#CTRL keys
             #TODO merge control click/key config (see map in PanelMenu)
             #and handle M(inimize), H(hsplit),V(vsplit),W(switch)X(close)
             if event.key == pygame.K_m:#Minimize zone
                 self.toggleminimised()
+            elif event.key == pygame.K_h:
+                self.zone.split("h", .5)
+            elif event.key == pygame.K_v:
+                self.zone.split("v", .5)
+            elif event.key == pygame.K_w:
+                self.zone.switch()
+            elif event.key == pygame.K_x:
+                self.zone.remove()
 
     def handlepanelkeydown(self, event, keymods):#triggered only on focused panel
         """  handle panel keydown """

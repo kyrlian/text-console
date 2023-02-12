@@ -145,7 +145,8 @@ class Zone:
         """ detect panel clicked, and manage click """
         if self.panel is not None and self.panel.isclicked(charx, chary):
             context.focusedpanel = self.panel
-            self.panel.handlepanelclick(event, charx, chary)#TODO send even if didnt already have focus ?
+            #TODO? send even if didnt already have focus ?
+            self.panel.handlepanelclick(event, charx, chary)
         else:
             for child in self.childs:
                 child.handlezoneclick(context, event, charx, chary)

@@ -153,7 +153,8 @@ class PanelTextInput(Panel):
             f"handlepanelkeydown: wrapedcursory:{wrapedcursory}, wrapedcursorx:{wrapedcursorx}.")
         # MOVES are done on wraped cursor & translated
         if event.key == pygame.K_UP:
-            self.movewrapedcursor(wrapedcursorx, wrapedcursory-1)#TODO:up/down doesnt work in wordwrap mode
+            #TODO:up/down doesnt work in wordwrap mode
+            self.movewrapedcursor(wrapedcursorx, wrapedcursory-1)
         elif event.key == pygame.K_DOWN:
             self.movewrapedcursor(wrapedcursorx, wrapedcursory+1)
         elif event.key == pygame.K_LEFT:
