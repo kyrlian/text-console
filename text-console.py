@@ -1,4 +1,4 @@
-#!python3
+#!python
 """ main """
 #kyrlian, 2023
 
