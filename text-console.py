@@ -1,4 +1,4 @@
-#!python
+#!python3
 """ main """
 #kyrlian, 2023
 
@@ -10,6 +10,7 @@ from zone import Zone
 from panelmp3player import PanelMp3Player
 from panelclock import PanelClock
 from paneltextinput import PanelTextInput
+from paneldirectorybrowser import PanelDirectoryBrowser
 
 # single line borders - https://en.wikipedia.org/wiki/Box_Drawing
 # 	        0 	1 	2 	3 	4 	5 	6 	7 	8 	9 	A 	B 	C 	D 	E 	F
@@ -37,9 +38,12 @@ from paneltextinput import PanelTextInput
 
 def initrootzone(screenw, screenh):
     """ init root zone """
-    rootzone = Zone(0, 0, screenw-1, screenh-1, None, PanelClock("Clock"))
-    zl, zr = rootzone.split("v", .4, PanelTextInput("Text editor",["Lorem","ipsum"]))
-    zl.split("h", .2,PanelMp3Player("MP3 Player",r"D:\music\#Divers"))
+    rootzone = Zone(0, 0, screenw-1, screenh-1, None, PanelClock("Clock")) #create root zone with a clock
+    zleft, zText = rootzone.split("v", .4, PanelTextInput("Text editor",["Lorem","ipsum"]))# split verticaly, clock will be reatached to left, add a text editor on right
+    # zleft.split("h", .2,PanelMp3Player("MP3 Player",r"D:\music\#Divers"))# split left zone horizontally, clock will be reatatched to top, add an mp3 player on bottom
+    zClock, zMp3 = zleft.split("h", .2,PanelMp3Player("MP3 Player"))# split left zone horizontally, clock will be reatatched to top, add an mp3 player on bottom
+    zPlayer, zBrowser = zMp3.split("h", .2,PanelDirectoryBrowser("MP3 Browser",[r"D:\music\#Divers",".mp3"])) #split mp3 player zone horizontally, player will stay on top, add a file browser below
+    zPlayer.panel.attachfilebrowser(zBrowser.panel) # register the file browser with the mp3 player
     return rootzone
 
 def pickfont():
