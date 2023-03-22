@@ -12,8 +12,8 @@ class PanelTextInput(Panel):
 
     def __init__(self, title="Text editor", initargs=None, status="normal"):
         Panel.__init__(self, title, initargs, status)
-        self.textcursor = Cursor()
-        self.wrappedcursor = Cursor()
+        self.textcursor = Cursor() #cursor in the orginal text
+        self.wrappedcursor = Cursor()#cursor in the wraped text
         self.textlines = self.loadcontent(initargs)
         self.wordwrapflag = False
         self.wrappinginfo = []
@@ -43,8 +43,8 @@ class PanelTextInput(Panel):
     def wordwrap(self, textlines):
         """ compute word wraped text """
         # when building the wrapped matrix, build wrappinginfo[wrapedline]=(sourceline, start pos), to be able to convert back
-        # have 2 cursors: wrappedcursor (used for display, relative to wraped text), and editcursor (used for edit, relative to origingal text) - convert from wrappedcursor to editcursor using wrappinginfo (see movewrapedcursor)
-        # read pos of wrapped cursor, move wrapped cursor, but edit at edit cursor pos
+        # have 2 cursors: wrappedcursor (used for display, relative to wraped text), and textcursor (used for edit, relative to original text) - convert from wrappedcursor to textcursor using wrappinginfo (see movewrapedcursor)
+        # read pos of wrapped cursor, move wrapped cursor, but edit at text cursor pos
         # during wrap, recalc wrapedcursor pos & refresh wrappinginfo
         wrapedlines = []
         wrappinginfo = []
@@ -70,21 +70,21 @@ class PanelTextInput(Panel):
         self.wrapedlines = wrapedlines
         return wrapedlines
 
-    def blendcursorintext(self, textlines):
+    def blendcursorintext(self, cursor, textlines):
         """ blend cursor in text array """
-        cursorx = self.textcursor.getchar()
-        cursory = self.textcursor.getline()
+        cursorx = cursor.getchar()
+        cursory = cursor.getline()
         cursorline = textlines[cursory]
         textlineswcursor = []+textlines
         charatcursor = None
         if cursorx < len(cursorline):
             charatcursor = cursorline[cursorx]
         textlineswcursor[cursory] = cursorline[:cursorx] + \
-            self.textcursor.cyclecursor(charatcursor) + cursorline[cursorx+1:]
+            cursor.cyclecursor(charatcursor) + cursorline[cursorx+1:]
         return textlineswcursor
 
     def updatecontent(self):
-        blended = self.blendcursorintext(self.textlines)
+        blended = self.blendcursorintext(self.textcursor, self.textlines)
         if self.wordwrapflag:
             self.content = self.wordwrap(blended)
         else:
@@ -100,7 +100,7 @@ class PanelTextInput(Panel):
             sourceline, startchar = self.wrappinginfo[self.wrappedcursor.getline()]
             self.movetextcursor(startchar+self.wrappedcursor.getchar(), sourceline)
         else:
-            # allow wrap text ops to work in non wrap mode
+            # allow wrap text ops to work in non wrap mode - by having wrappedcursor=textcursor
             self.wrappedcursor.placeincontent(wcursorx, wcursory, self.textlines)
             self.movetextcursor(wcursorx, wcursory)
 
@@ -113,7 +113,7 @@ class PanelTextInput(Panel):
         # cut current line at x, add new line with cut content
         linetocut = self.textlines[cursory]
         leftpart = linetocut[0:cursorx]
-        rightpart = linetocut[cursorx+1:]
+        rightpart = linetocut[cursorx:]
         self.textlines[cursory] = leftpart
         self.textlines.insert(cursory+1, rightpart)
         # update of wraped cursor will be done during next wraping compute
