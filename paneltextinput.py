@@ -13,7 +13,7 @@ class PanelTextInput(Panel):
     def __init__(self, title="Text editor", initargs=None, status="normal"):
         Panel.__init__(self, title, initargs, status)
         self.textcursor = Cursor() #cursor in the orginal text
-        self.wrappedcursor = Cursor()#cursor in the wraped text
+        self.wrappedcursor = Cursor(["░",""])#cursor in the wraped text
         self.textlines = self.loadcontent(initargs)
         self.wordwrapflag = False
         self.wrappinginfo = []
@@ -58,7 +58,7 @@ class PanelTextInput(Panel):
                     taken = len(thisline)
                     # update wrapped cursor position
                     if self.textcursor.getline() == idx and self.textcursor.getchar() >= startofwraped and self.textcursor.getchar() < startofwraped + taken:
-                        self.wrappedcursor.position = [self.textcursor.getchar() - startofwraped, len(wrapedlines)-1]
+                        self.wrappedcursor.position = [self.textcursor.getchar() - startofwraped, len(wrapedlines)]
                     restofline = restofline[taken:]
                     wrapedlines.append(thisline)
                     wrappinginfo.append((idx, startofwraped))
@@ -86,7 +86,10 @@ class PanelTextInput(Panel):
     def updatecontent(self):
         blended = self.blendcursorintext(self.textcursor, self.textlines)
         if self.wordwrapflag:
-            self.content = self.wordwrap(blended)
+            wrapped = self.wordwrap(blended)
+            # wrappedandblended = self.blendcursorintext(self.wrappedcursor, wrapped) #blend the wrapped cursor for debug
+            # self.content = wrappedandblended
+            self.content = wrapped
         else:
             self.wrapedlines = blended
             # If not in wrap mode keep both cursors in sync
@@ -153,7 +156,7 @@ class PanelTextInput(Panel):
             f"handlepanelkeydown: wrapedcursory:{wrapedcursory}, wrapedcursorx:{wrapedcursorx}.")
         # MOVES are done on wraped cursor & translated
         if event.key == pygame.K_UP:
-            #TODO:up/down doesnt work in wordwrap mode
+            #TODO:up/down doesnt work in wordwrap mode (left goes left+up, right goes right+up)
             self.movewrapedcursor(wrapedcursorx, wrapedcursory-1)
         elif event.key == pygame.K_DOWN:
             self.movewrapedcursor(wrapedcursorx, wrapedcursory+1)
