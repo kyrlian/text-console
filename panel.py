@@ -7,7 +7,7 @@ class Panel:
     """ base panel class"""
 
     def __init__(self, title="", initargs=None, status="normal"):
-        self.controls = "□_|⇅x"
+        self.windowcontrols = "□_|⇅x"
         self.title = title
         self.status = status
         self.zone = None
@@ -88,7 +88,6 @@ class Panel:
         """  handle control keys """
         if self.zone is not None and keymods & pygame.KMOD_CTRL:#CTRL keys
             #TODO merge control click/key config (see map in PanelMenu)
-            #and handle M(inimize), H(hsplit),V(vsplit),W(switch)X(close)
             if event.key == pygame.K_m:#Minimize zone
                 self.toggleminimised()
             elif event.key == pygame.K_h:
@@ -113,7 +112,7 @@ class Panel:
             for i in range(self.zone.y):
                 txtarray.append("")
             txtarray.append(" "*self.zone.x+"╔"+self.title+"═"*(self.zone.w-2-len(self.title) -
-                            len(self.controls))+self.controls+"╗")  # top border
+                            len(self.windowcontrols))+self.windowcontrols+"╗")  # top border
             # side borders plus content
             for txtline in self.content:
                 txtarray.append(" "*self.zone.x+"║"+txtline +
