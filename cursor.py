@@ -3,9 +3,9 @@
 
 class Cursor():
     """ cursor class """
-    def __init__(self):
+    def __init__(self, symbols=["█",""] ):
         self.position = [0, 0] #char, line
-        self.cyclesymbols = ["█",""]  # █░▒▓
+        self.cyclesymbols = symbols  # █░▒▓
         self.symbol = self.cyclesymbols[0]
         self.cycleframes = 10
         self.cyclecounter = self.cycleframes
