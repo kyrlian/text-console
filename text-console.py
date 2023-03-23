@@ -40,8 +40,8 @@ def initrootzone(screenw, screenh):
     """ init root zone """
     rootzone = Zone(0, 0, screenw-1, screenh-1, None, PanelClock("Clock")) #create root zone with a clock
     zleft, zText = rootzone.split("v", .4, PanelTextInput("Text editor",["Lorem","ipsum"]))# split verticaly, clock will be reatached to left, add a text editor on right
-    # zleft.split("h", .2,PanelMp3Player("MP3 Player",r"D:\music\#Divers"))# split left zone horizontally, clock will be reatatched to top, add an mp3 player on bottom
-    zClock, zMp3 = zleft.split("h", .2,PanelMp3Player("MP3 Player"))# split left zone horizontally, clock will be reatatched to top, add an mp3 player on bottom
+    # zleft.split("h", .2,PanelMp3Player("MP3 Player",r"D:\music"))# split left zone horizontally, clock will be reatatched to top, add an mp3 player on bottom
+    zClock, zMp3 = zleft.split("h", .2,PanelMp3Player("MP3 Player",r"D:\music"))# split left zone horizontally, clock will be reatatched to top, add an mp3 player on bottom
     # zPlayer, zBrowser = zMp3.split("h", .2,PanelDirectoryBrowser("MP3 Browser",[r"D:\music\#Divers",".mp3"])) #split mp3 player zone horizontally, player will stay on top, add a file browser below
     # zPlayer.panel.linkpanel(zBrowser.panel) # register the file browser with the mp3 player
     # zBrowser.panel.registerfileclickaction(zPlayer.panel.play) # register the player play() method on browser click

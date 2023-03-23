@@ -16,7 +16,7 @@ class PanelMp3Player(Panel):
         self.panelcontrolstring =  self.drawcontrols(self.panelcontrols," ")
         self.content = self.panelcontrolstring
         self.paused = True
-        self.musicdir = ""
+        self.initialdirectory = initargs
         self.listoffset = 0
         self.playingtitle = ""
         mixer.init()
@@ -40,7 +40,8 @@ class PanelMp3Player(Panel):
         """ play song """
         if self.linkedpanel is not None and self.linkedpanel.currentfilenumber is not None:
             musicfile = self.linkedpanel.filelist[self.linkedpanel.currentfilenumber]
-            musicfilepath = os.path.join(self.musicdir, musicfile)
+            musicdir = self.linkedpanel.currentdir
+            musicfilepath = os.path.join(musicdir, musicfile)
             if os.path.isfile(musicfilepath):
                 mixer.music.load( musicfilepath )
                 mixer.music.play()
@@ -74,7 +75,7 @@ class PanelMp3Player(Panel):
 
     def splitbrowser(self):
         if self.zone is not None and self.linkedpanel is None:
-            zPlayer, zBrowser = self.zone.split("h", .2,PanelDirectoryBrowser("MP3 Browser",[r"D:\music\#Divers",".mp3"])) #split mp3 player zone horizontally, player will stay on top, add a file browser below
+            zPlayer, zBrowser = self.zone.split("h", .2,PanelDirectoryBrowser("MP3 Browser",[self.initialdirectory,".mp3"])) #split mp3 player zone horizontally, player will stay on top, add a file browser below
             zPlayer.panel.linkpanel(zBrowser.panel) # register the file browser with the mp3 player
             zBrowser.panel.registerfileclickaction(zPlayer.panel.play) # register the player play() method on browser click
 
