@@ -9,29 +9,41 @@ from paneltextinput import PanelTextInput
 
 class PanelMenu(Panel):
     """ menu panel """
-    choices=[]#key,title,class,args
-    choices.append((pygame.K_c,"Clock",PanelClock,""))
-    choices.append((pygame.K_m,"MP3 Player",PanelMp3Player,r"D:\music\#Divers"))
-    choices.append((pygame.K_t,"Text Editor",PanelTextInput,["Lorem","ipsum"]))
 
     def __init__(self, title="Menu", initargs=None, status="normal"):
         Panel.__init__(self, title, initargs, status)
-        for key,txt,panelclass,initargs in PanelMenu.choices:
-            self.content.append(txt)
+        self.menucontrols = self.initmenucontrols()
+        for name,key,symbol,pos,command in self.menucontrols:
+            self.content.append(name)
 
-    def replaceme(self,panelclass,title,arg):
-        """ replace this panel with chosen one """
+    def replacewith(self,newpanel):
         if self.zone is not None:
-            self.zone.attachpanel(panelclass(title,arg))
+            self.zone.attachpanel(newpanel)
             self.zone = None
 
+    def replacewithClock(self):
+        self.replacewith(PanelClock("Clock"))
+
+    def replacewithMP3Player(self):
+        self.replacewith(PanelMp3Player("MP3 Player",r"D:\music"))
+    
+    def replacewithTextEditor(self):
+        self.replacewith(PanelTextInput("Text editor",["Lorem","ipsum"]))
+
+    def initmenucontrols(self):
+        controls=[]#name,key,symbol,pos,command
+        controls.append(("[C]lock",pygame.K_c,"C",[1],self.replacewithClock))
+        controls.append(("[M]P3 Player",pygame.K_m,"M",[2],self.replacewithMP3Player))
+        controls.append(("[T]ext Editor",pygame.K_t,"T",[3],self.replacewithTextEditor))
+        return controls
+    
     def handlechoiceclick(self, event,charx, chary):
         """ handle click on choice """
         if self.zone is not None:
-            for idx, (key,title,panelclass,arg) in enumerate(PanelMenu.choices):
-                if chary == self.zone.y + 1 + idx:
-                    print(f"clicked {title}")
-                    self.replaceme(panelclass,title,arg)
+            for name,key,symbol,pos,command in self.menucontrols:
+                if chary - self.zone.y in pos:
+                    print(f"clicked {name}")
+                    command()
                     return
 
     def handlepanelclick(self, event, charx, chary):
@@ -41,10 +53,10 @@ class PanelMenu(Panel):
     def handlemenukeydown(self, event, keymods):
         """ handle menu shortcuts """
         if self.zone is not None:
-            for key,title,panelclass,arg in PanelMenu.choices:
+            for name,key,symbol,pos,command in self.menucontrols:
                 if event.key == key:
-                    print(f"keyed {title}")
-                    self.replaceme(panelclass,title,arg)
+                    print(f"keyed {name}")
+                    command()
                     return
 
     def handlepanelkeydown(self, event, keymods):
