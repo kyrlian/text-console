@@ -7,12 +7,19 @@ class Panel:
     """ base panel class"""
 
     def __init__(self, title="", initargs=None, status="normal"):
-        self.windowcontrols = "□_|⇅x"
+        self.windowcontrols=self.initwindowcontrols()
+        self.windowcontrolstring = self.drawcontrols(self.windowcontrols,"")
         self.title = title
         self.status = status
         self.zone = None
         self.sizes = [.1, .5, .9]
         self.content = []
+        self.linkedpanel = None
+
+    def linkpanel(self,panel):
+        """ link two panels (ex player and browser)"""
+        self.linkedpanel = panel
+        panel.linkedpanel = self
 
     def attachtozone(self, zone):
         """ Attach panel to parent zone """
@@ -56,49 +63,59 @@ class Panel:
             return charx >= self.zone.x and charx < self.zone.x + self.zone.w and chary >= self.zone.y and chary < self.zone.y + self.zone.h
         return False
     
+    def splith(self):
+        if self.zone is not None:
+            self.zone.split("h", .5)
+
+    def splitv(self):
+        if self.zone is not None:
+            self.zone.split("v", .5)
+
+    def remove(self):
+        if self.zone is not None:
+            self.zone.remove()
+
+    def switch(self):
+        if self.zone is not None:
+            self.zone.switch()
+        
+    def initwindowcontrols(self):
+        # "□_|⇅x"
+        controls=[]#name,key,symbol,pos,command
+        controls.append(("MaxMin",pygame.K_m,"M",[1],self.toggleminimised))
+        controls.append(("SplitH",pygame.K_h,"H",[2],self.splith))
+        controls.append(("SplitV",pygame.K_v,"V",[3],self.splitv))
+        controls.append(("Switch",pygame.K_s,"S",[4],self.switch))
+        controls.append(("Close",pygame.K_x,"X",[5],self.remove))
+        return controls
+
+    def drawcontrols(self, controls, spacing):
+        return spacing.join(list(map(lambda tuple: tuple[2],controls)))
+    
     def handlecontrolclick(self, event, charx, chary):
         """ handle click of control panel """
         if self.zone is not None and chary == self.zone.y:
-            controlsminimize = -6  # "□_|⇅x"
-            controlssplith = -5
-            controlssplitv = -4
-            controlsswitch = -3
-            controlsclose = -2
-            if charx == self.zone.x + self.zone.w + controlsminimize:
-                print("clicked minimize")
-                self.toggleminimised()
-            elif charx == self.zone.x + self.zone.w + controlssplith:
-                print("clicked split h")
-                self.zone.split("h", .5)
-            elif charx == self.zone.x + self.zone.w + controlssplitv:
-                print("clicked split v")
-                self.zone.split("v", .5)
-            elif charx == self.zone.x + self.zone.w + controlsswitch:
-                print("clicked switch")
-                self.zone.switch()
-            elif charx == self.zone.x + self.zone.w + controlsclose:
-                print("clicked close")
-                self.zone.remove()
+            controlswidth = len(self.windowcontrolstring )
+            for name,key,symbol,pos,command in self.windowcontrols:
+                if charx - (self.zone.x + self.zone.w - controlswidth - 2) in pos:
+                    print(f"clicked {name}")
+                    command()
+                    return
 
     def handlepanelclick(self, event, charx, chary):
         """ handle click of panel """
         self.handlecontrolclick(event, charx, chary)
+        #to be customized for each panel type
 
     def handlecontrolkeydown(self, event, keymods):
         """  handle control keys """
-        if self.zone is not None and keymods & pygame.KMOD_CTRL:#CTRL keys
-            #TODO merge control click/key config (see map in PanelMenu)
-            if event.key == pygame.K_m:#Minimize zone
-                self.toggleminimised()
-            elif event.key == pygame.K_h:
-                self.zone.split("h", .5)
-            elif event.key == pygame.K_v:
-                self.zone.split("v", .5)
-            elif event.key == pygame.K_w:
-                self.zone.switch()
-            elif event.key == pygame.K_x:
-                self.zone.remove()
-
+        if keymods & pygame.KMOD_CTRL:#CTRL keys
+            for name,key,symbol,pos,command in self.windowcontrols:
+                if event.key == key:
+                    print(f"Pressed {name}")
+                    command()
+                    return
+        
     def handlepanelkeydown(self, event, keymods):#triggered only on focused panel
         """  handle panel keydown """
         self.handlecontrolkeydown(event, keymods)
@@ -112,7 +129,7 @@ class Panel:
             for i in range(self.zone.y):
                 txtarray.append("")
             txtarray.append(" "*self.zone.x+"╔"+self.title+"═"*(self.zone.w-2-len(self.title) -
-                            len(self.windowcontrols))+self.windowcontrols+"╗")  # top border
+                            len(self.windowcontrolstring))+self.windowcontrolstring+"╗")  # top border
             # side borders plus content
             for txtline in self.content:
                 txtarray.append(" "*self.zone.x+"║"+txtline +
