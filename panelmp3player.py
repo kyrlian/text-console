@@ -5,7 +5,7 @@ import os
 from panel import Panel
 from pygame import mixer
 import pygame
-
+from paneldirectorybrowser import PanelDirectoryBrowser
 
 class PanelMp3Player(Panel):
     """ MP3 panel """
@@ -13,16 +13,13 @@ class PanelMp3Player(Panel):
     def __init__(self, title="MP3 Player", initargs=None, status="normal"):
         Panel.__init__(self, title, initargs, status)
         self.panelcontrols=self.initpanelcontrols()
-        self.panelcontrolstring = self.drawpanelcontrols()# "▣ > || << >>"
+        self.panelcontrolstring =  self.drawcontrols(self.panelcontrols," ")
         self.content = self.panelcontrolstring
         self.paused = True
         self.musicdir = ""
         self.listoffset = 0
         self.playingtitle = ""
         mixer.init()
-
-    def attachfilebrowser(self,directorybrowserpanelinstance):
-        self.browser = directorybrowserpanelinstance
 
     def preferedsizes(self):
         self.sizes = [3, 10, len(self.content)+2]
@@ -33,7 +30,6 @@ class PanelMp3Player(Panel):
         if not self.paused and not mixer.music.get_busy():
             self.forward()
             self.play()
-        #TODO move file list to secondary panel
         self.content = [self.panelcontrolstring, self.playingtitle]
 
     def stop(self):
@@ -42,8 +38,8 @@ class PanelMp3Player(Panel):
 
     def play(self):
         """ play song """
-        if self.browser.currentfilenumber is not None:
-            musicfile = self.browser.filelist[self.browser.currentfilenumber]
+        if self.linkedpanel is not None and self.linkedpanel.currentfilenumber is not None:
+            musicfile = self.linkedpanel.filelist[self.linkedpanel.currentfilenumber]
             musicfilepath = os.path.join(self.musicdir, musicfile)
             if os.path.isfile(musicfilepath):
                 mixer.music.load( musicfilepath )
@@ -60,21 +56,31 @@ class PanelMp3Player(Panel):
 
     def backward(self):
         """ go to previous song """
-        if self.browser.currentfilenumber is not None:
-            self.browser.currentfilenumber = max(self.browser.currentfilenumber-1 , 0)
-            limit =  len(self.browser.filelist)
-            while not self.browser.filelist[self.browser.currentfilenumber].endswith(".mp3") and limit > 0:#music file
-                self.browser.currentfilenumber = max(self.browser.currentfilenumber-1 , 0)
+        if self.linkedpanel is not None and self.linkedpanel.currentfilenumber is not None:
+            self.linkedpanel.currentfilenumber = max(self.linkedpanel.currentfilenumber-1 , 0)
+            limit =  len(self.linkedpanel.filelist)
+            while not self.linkedpanel.filelist[self.linkedpanel.currentfilenumber].endswith(".mp3") and limit > 0:#music file
+                self.linkedpanel.currentfilenumber = max(self.linkedpanel.currentfilenumber-1 , 0)
                 limit-=1
 
     def forward(self):
         """ go to next song """
-        if self.browser.currentfilenumber is not None:
-            self.browser.currentfilenumber = ( self.browser.currentfilenumber +1 ) %  len(self.browser.filelist) #loop
-            limit = len(self.browser.filelist)
-            while not self.browser.filelist[self.browser.currentfilenumber].endswith(".mp3") and limit > 0:#music file
-                self.browser.currentfilenumber = ( self.browser.currentfilenumber +1 ) %  len(self.browser.filelist)
+        if self.linkedpanel is not None and self.linkedpanel.currentfilenumber is not None:
+            self.linkedpanel.currentfilenumber = ( self.linkedpanel.currentfilenumber +1 ) %  len(self.linkedpanel.filelist) #loop
+            limit = len(self.linkedpanel.filelist)
+            while not self.linkedpanel.filelist[self.linkedpanel.currentfilenumber].endswith(".mp3") and limit > 0:#music file
+                self.linkedpanel.currentfilenumber = ( self.linkedpanel.currentfilenumber +1 ) %  len(self.linkedpanel.filelist)
                 limit-=1
+
+    def splitbrowser(self):
+        if self.zone is not None and self.linkedpanel is None:
+            zPlayer, zBrowser = self.zone.split("h", .2,PanelDirectoryBrowser("MP3 Browser",[r"D:\music\#Divers",".mp3"])) #split mp3 player zone horizontally, player will stay on top, add a file browser below
+            zPlayer.panel.linkpanel(zBrowser.panel) # register the file browser with the mp3 player
+            zBrowser.panel.registerfileclickaction(zPlayer.panel.play) # register the player play() method on browser click
+
+    def removebrowser(self):
+        if self.zone is not None and self.linkedpanel is not None:
+            self.linkedpanel.zone.remove()
 
     def initpanelcontrols(self):
         # "▣ > || << >>"
@@ -84,12 +90,9 @@ class PanelMp3Player(Panel):
         playercontrols.append(("Pause",pygame.K_SPACE,"||",[5,6],self.pause))
         playercontrols.append(("Bwd",pygame.K_RIGHT,"<<",[8,9],self.backward))
         playercontrols.append(("Fwd",pygame.K_LEFT,">>",[11,12],self.forward))
+        playercontrols.append(("Browser",pygame.K_b,"B",[14],self.splitbrowser))
         return playercontrols
     
-    def drawpanelcontrols(self):
-        # concat control symbols
-        return " ".join(list(map(lambda tuple: tuple[2],self.panelcontrols)))
-
     def handleplayerclick(self, event,charx, chary):
         """ handle click on player controls """
         if self.zone is not None and chary == self.zone.y+1:
