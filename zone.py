@@ -182,6 +182,8 @@ class Zone:
         if self.panel is not None:
             self.panel.update()
 
+    # TODO migrate to python curses ? https://docs.python.org/3/howto/curses.html
+
     def draw(self, context, scr, font):
         """  draw zone """
         lineheigth = font.get_linesize()
