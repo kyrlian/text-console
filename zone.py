@@ -72,7 +72,7 @@ class Zone:
         else:#rootzone - should never apply
             print("I am root")
 
-    #TODO handle zone resise with mouse drag
+    #TODO handle zone resize with mouse drag
 
     def resizesplit(self, pctorabs=None):  # change split pct, or just recalc sizes (if Pct==None)
         """  resize the splits of this zone """
@@ -144,9 +144,11 @@ class Zone:
     def handlezoneclick(self, context, event, charx, chary):
         """ detect panel clicked, and manage click """
         if self.panel is not None and self.panel.isclicked(charx, chary):
-            context.focusedpanel = self.panel
-            #TODO? send even if didnt already have focus ?
-            self.panel.handlepanelclick(event, charx, chary)
+            if context.focusedpanel is self.panel:
+                #send click only if already has focus
+                self.panel.handlepanelclick(event, charx, chary)
+            else:
+                context.focusedpanel = self.panel
         else:
             for child in self.childs:
                 child.handlezoneclick(context, event, charx, chary)
