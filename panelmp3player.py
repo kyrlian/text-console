@@ -13,13 +13,16 @@ class PanelMp3Player(Panel):
     def __init__(self, title="MP3 Player", initargs=None, status="normal"):
         Panel.__init__(self, title, initargs, status)
         self.panelcontrols=self.initpanelcontrols()
-        self.panelcontrolstring =  self.drawcontrols(self.panelcontrols," ")
+        self.panelcontrolstring = self.drawcontrols(self.panelcontrols," ")
         self.content = self.panelcontrolstring
         self.paused = True
         self.initialdirectory = initargs
         self.listoffset = 0
         self.playingtitle = ""
         mixer.init()
+
+    def firstupdate(self):
+        self.splitbrowser()
 
     def preferedsizes(self):
         self.sizes = [3, 10, len(self.content)+2]
@@ -63,6 +66,7 @@ class PanelMp3Player(Panel):
             while not self.linkedpanel.filelist[self.linkedpanel.currentfilenumber].endswith(".mp3") and limit > 0:#music file
                 self.linkedpanel.currentfilenumber = max(self.linkedpanel.currentfilenumber-1 , 0)
                 limit-=1
+            self.play()
 
     def forward(self):
         """ go to next song """
@@ -72,16 +76,16 @@ class PanelMp3Player(Panel):
             while not self.linkedpanel.filelist[self.linkedpanel.currentfilenumber].endswith(".mp3") and limit > 0:#music file
                 self.linkedpanel.currentfilenumber = ( self.linkedpanel.currentfilenumber +1 ) %  len(self.linkedpanel.filelist)
                 limit-=1
+            self.play()
 
     def splitbrowser(self):
-        if self.zone is not None and self.linkedpanel is None:
-            zPlayer, zBrowser = self.zone.split("h", .2,PanelDirectoryBrowser("MP3 Browser",[self.initialdirectory,".mp3"])) #split mp3 player zone horizontally, player will stay on top, add a file browser below
-            zPlayer.panel.linkpanel(zBrowser.panel) # register the file browser with the mp3 player
-            zBrowser.panel.registerfileclickaction(zPlayer.panel.play) # register the player play() method on browser click
-
-    def removebrowser(self):
-        if self.zone is not None and self.linkedpanel is not None:
-            self.linkedpanel.zone.remove()
+        if  self.linkedpanel is None:
+            if self.zone is not None :
+                zPlayer, zBrowser = self.zone.split("h", .2,PanelDirectoryBrowser("MP3 Browser",[self.initialdirectory,".mp3"])) #split mp3 player zone horizontally, player will stay on top, add a file browser below
+                zPlayer.panel.linkpanel(zBrowser.panel) # register the file browser with the mp3 player
+                zBrowser.panel.registerfileclickaction(zPlayer.panel.play) # register the player play() method on browser click
+        else:
+            self.linkedpanel.remove()
 
     def initpanelcontrols(self):
         # "▣ > || << >>"

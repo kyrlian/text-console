@@ -15,12 +15,19 @@ class Panel:
         self.sizes = [.1, .5, .9]
         self.content = []
         self.linkedpanel = None
-
+        self.isfirstupdate = True
+    
     def linkpanel(self,panel):
         """ link two panels (ex player and browser)"""
         self.linkedpanel = panel
         panel.linkedpanel = self
 
+    def unlinkpanel(self):
+        """ unlink two panels (ex player and browser)"""
+        if self.linkedpanel is not None:
+            self.linkedpanel.linkedpanel = None
+        self.linkedpanel = None
+        
     def attachtozone(self, zone):
         """ Attach panel to parent zone """
         self.zone = zone
@@ -33,8 +40,15 @@ class Panel:
         """ update panel content """
         # stub, to be customized for each panel type
 
+    def firstupdate(self):
+        """  panel first update """
+        # stub, to be customized for each panel type
+
     def update(self):
         """ update panel """
+        if self.isfirstupdate is True:
+            self.firstupdate()
+            self.isfirstupdate = False
         self.updatecontent()
         self.preferedsizes()  # is after init content, so it can use len(self.content)
 
@@ -72,6 +86,7 @@ class Panel:
             self.zone.split("v", .5)
 
     def remove(self):
+        self.unlinkpanel()
         if self.zone is not None:
             self.zone.remove()
 

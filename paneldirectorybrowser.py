@@ -40,6 +40,7 @@ class PanelDirectoryBrowser(Panel):
         """ load directory content """
         self.currentdir = directory
         self.filelist = [".."]
+        self.listoffset = 0
         for filename in os.listdir(directory):
             if os.path.isdir(os.path.join(directory, filename)) or \
             (os.path.isfile(os.path.join(directory, filename)) and (self.extensionfilter is None or filename.endswith(self.extensionfilter))):
