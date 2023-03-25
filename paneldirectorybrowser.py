@@ -4,7 +4,7 @@
 import os
 from panel import Panel
 from pygame import mixer
-import pygame
+import const
 
 
 class PanelDirectoryBrowser(Panel):
@@ -81,8 +81,8 @@ class PanelDirectoryBrowser(Panel):
 
     def initpanelcontrols(self):
         browsercontrols = []  # name,key,symbol,pos,command
-        browsercontrols.append(("Up", pygame.K_UP, "^", [14], self.scrollup))
-        browsercontrols.append(("Down", pygame.K_DOWN, "v", [16], self.scrolldown))
+        browsercontrols.append(("Up", const.K_UP, "^", [14], self.scrollup))
+        browsercontrols.append(("Down", const.K_DOWN, "v", [16], self.scrolldown))
         return browsercontrols
 
     def handlebrowserclick(self, event, charx, chary):
