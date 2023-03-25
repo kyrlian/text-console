@@ -42,7 +42,6 @@ class PanelMp3Player(Panel):
 
     def loaddirectory(self, directory):
         """ load directory """
-        #TODO move directory stuff to specific class for reuse with paneltextinput & other
         if directory is not None and isinstance(directory, str) and os.path.isdir(directory):
             self.loaddirectorycontent(directory,".mp3")
         elif os.path.isdir("."):
@@ -68,7 +67,6 @@ class PanelMp3Player(Panel):
         if not self.paused and not mixer.music.get_busy():
             self.forward()
             self.play()
-        #TODO move file list to secondary panel
         self.content = [self.panelcontrolstring, self.playingtitle]+self.listfilenames()
 
     def stop(self):
