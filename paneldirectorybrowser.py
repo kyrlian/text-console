@@ -4,8 +4,7 @@
 import os
 from panel import Panel
 from pygame import mixer
-import const
-
+from eventconverter import K_UP, K_DOWN
 
 class PanelDirectoryBrowser(Panel):
     """ Directory Browser panel """
@@ -81,12 +80,13 @@ class PanelDirectoryBrowser(Panel):
 
     def initpanelcontrols(self):
         browsercontrols = []  # name,key,symbol,pos,command
-        browsercontrols.append(("Up", const.K_UP, "^", [14], self.scrollup))
-        browsercontrols.append(("Down", const.K_DOWN, "v", [16], self.scrolldown))
+        browsercontrols.append(("Up", K_UP, "^", [14], self.scrollup))
+        browsercontrols.append(("Down", K_DOWN, "v", [16], self.scrolldown))
         return browsercontrols
 
     def handlebrowserclick(self, event, charx, chary):
         """ handle click on song list """
+        assert self.zone is not None
         linecliked = chary - self.zone.y - 1 + self.listoffset  # manage list offset
         if linecliked >= 0 and linecliked < len(self.filelist):
             if self.filelist[linecliked].endswith(self.extensionfilter):  # eligible file

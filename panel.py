@@ -136,6 +136,30 @@ class Panel:
         self.handlecontrolkeydown(event, keymods)
         #to be customized for each panel type
 
+# single line borders - https://en.wikipedia.org/wiki/Box_Drawing
+# 	        0 	1 	2 	3 	4 	5 	6 	7 	8 	9 	A 	B 	C 	D 	E 	F
+# U+250x 	─ 	━ 	│ 	┃ 	┄ 	┅ 	┆ 	┇ 	┈ 	┉ 	┊ 	┋ 	┌ 	┍ 	┎ 	┏
+# U+251x 	┐ 	┑ 	┒ 	┓ 	└ 	┕ 	┖ 	┗ 	┘ 	┙ 	┚ 	┛ 	├ 	┝ 	┞ 	┟
+# U+252x 	┠ 	┡ 	┢ 	┣ 	┤ 	┥ 	┦ 	┧ 	┨ 	┩ 	┪ 	┫ 	┬ 	┭ 	┮ 	┯
+# U+253x 	┰ 	┱ 	┲ 	┳ 	┴ 	┵ 	┶ 	┷ 	┸ 	┹ 	┺ 	┻ 	┼ 	┽ 	┾ 	┿
+# U+254x 	╀ 	╁ 	╂ 	╃ 	╄ 	╅ 	╆ 	╇ 	╈ 	╉ 	╊ 	╋ 	╌ 	╍ 	╎ 	╏
+# U+255x 	═ 	║ 	╒ 	╓ 	╔ 	╕ 	╖ 	╗ 	╘ 	╙ 	╚ 	╛ 	╜ 	╝ 	╞ 	╟
+# U+256x 	╠ 	╡ 	╢ 	╣ 	╤ 	╥ 	╦ 	╧ 	╨ 	╩ 	╪ 	╫ 	╬ 	╭ 	╮ 	╯
+# U+257x 	╰ 	╱ 	╲ 	╳ 	╴ 	╵ 	╶ 	╷ 	╸ 	╹ 	╺ 	╻ 	╼ 	╽ 	╾ 	╿
+# blocks - https://en.wikipedia.org/wiki/Block_Elements
+# 	█ 	Full block
+# 	░ 	Light shade
+# 	▒ 	Medium shade
+# 	▓ 	Dark shade
+# 	▙ 	Quadrant upper left and lower left and lower right
+# 	▛ 	Quadrant upper left and upper right and lower left
+# 	▜ 	Quadrant upper left and upper right and lower right
+# 	▟ 	Quadrant upper right and lower left and lower right
+# 	▀ 	Upper half block
+# 	▄ 	Lower half block
+# 	▌ 	Left half block
+# 	▐ 	Right half block
+
     def draw(self):
         """  draw panel content to text array """
         if self.zone is not None:

@@ -5,36 +5,17 @@
 import sys
 import pygame
 
+from renderer import Renderer
 from context import Context
 from zone import Zone
 from panelmp3player import PanelMp3Player
 from panelclock import PanelClock
 from paneltextinput import PanelTextInput
 from paneldirectorybrowser import PanelDirectoryBrowser
+from eventconverter import EventConverter
+from eventconverter import QUIT
 
-# single line borders - https://en.wikipedia.org/wiki/Box_Drawing
-# 	        0 	1 	2 	3 	4 	5 	6 	7 	8 	9 	A 	B 	C 	D 	E 	F
-# U+250x 	─ 	━ 	│ 	┃ 	┄ 	┅ 	┆ 	┇ 	┈ 	┉ 	┊ 	┋ 	┌ 	┍ 	┎ 	┏
-# U+251x 	┐ 	┑ 	┒ 	┓ 	└ 	┕ 	┖ 	┗ 	┘ 	┙ 	┚ 	┛ 	├ 	┝ 	┞ 	┟
-# U+252x 	┠ 	┡ 	┢ 	┣ 	┤ 	┥ 	┦ 	┧ 	┨ 	┩ 	┪ 	┫ 	┬ 	┭ 	┮ 	┯
-# U+253x 	┰ 	┱ 	┲ 	┳ 	┴ 	┵ 	┶ 	┷ 	┸ 	┹ 	┺ 	┻ 	┼ 	┽ 	┾ 	┿
-# U+254x 	╀ 	╁ 	╂ 	╃ 	╄ 	╅ 	╆ 	╇ 	╈ 	╉ 	╊ 	╋ 	╌ 	╍ 	╎ 	╏
-# U+255x 	═ 	║ 	╒ 	╓ 	╔ 	╕ 	╖ 	╗ 	╘ 	╙ 	╚ 	╛ 	╜ 	╝ 	╞ 	╟
-# U+256x 	╠ 	╡ 	╢ 	╣ 	╤ 	╥ 	╦ 	╧ 	╨ 	╩ 	╪ 	╫ 	╬ 	╭ 	╮ 	╯
-# U+257x 	╰ 	╱ 	╲ 	╳ 	╴ 	╵ 	╶ 	╷ 	╸ 	╹ 	╺ 	╻ 	╼ 	╽ 	╾ 	╿
-# blocks - https://en.wikipedia.org/wiki/Block_Elements
-# 	█ 	Full block
-# 	░ 	Light shade
-# 	▒ 	Medium shade
-# 	▓ 	Dark shade
-# 	▙ 	Quadrant upper left and lower left and lower right
-# 	▛ 	Quadrant upper left and upper right and lower left
-# 	▜ 	Quadrant upper left and upper right and lower right
-# 	▟ 	Quadrant upper right and lower left and lower right
-# 	▀ 	Upper half block
-# 	▄ 	Lower half block
-# 	▌ 	Left half block
-# 	▐ 	Right half block
+
 
 def initrootzone(screenw, screenh):
     """ init root zone """
@@ -45,66 +26,41 @@ def initrootzone(screenw, screenh):
     # zPlayer, zBrowser = zMp3.split("h", .2,PanelDirectoryBrowser("MP3 Browser",[r"D:\music\#Divers",".mp3"])) #split mp3 player zone horizontally, player will stay on top, add a file browser below
     # zPlayer.panel.linkpanel(zBrowser.panel) # register the file browser with the mp3 player
     # zBrowser.panel.registerfileclickaction(zPlayer.panel.play) # register the player play() method on browser click
-
     return rootzone
-
-def pickfont():
-    """ pick a mono font """
-    availables = pygame.font.get_fonts()
-    print("Available fonts : "+str(availables))
-    candidates = ["lucidaconsole","ibmplexmono"]
-    for candidate in candidates:
-        if candidate in availables:
-            print("Selected candidate font : "+candidate)
-            return pygame.font.SysFont(candidate, 15)
-    for available in availables:
-        if "mono" in available:
-            print("Selected mono font : "+available)
-            return pygame.font.SysFont(available, 15)
-    return None
 
 def main():
     """ main """
-    displayinfo = pygame.display.Info()
-    screen = pygame.display.set_mode(
-        (displayinfo.current_w, displayinfo.current_h), pygame.FULLSCREEN)
-    font = pickfont()
-    if font is not None:
-        lineheigth = font.get_linesize()
-        charwidth, charheigth = font.size(" ")
-        maxlines = int(screen.get_height()/lineheigth)
-        linewidth = int(screen.get_width()/charwidth)
-        rootzone = initrootzone(linewidth, maxlines)
-        context = Context(rootzone.getnextpanel())
-        bgcolor = (30, 30, 30)
-        clock = pygame.time.Clock()
-        done = False
-        while not done:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+    mode = "pygame"
+    renderer = Renderer(mode)
+    converter = EventConverter(mode,renderer.charwidth, renderer.lineheigth)
+    rootzone = initrootzone(renderer.linewidth, renderer.maxlines)
+    context = Context(rootzone.getnextpanel())
+    done = False
+    while not done:
+        #    event = screen.getch() # curses
+        for event in pygame.event.get():
+            commonevent = converter.convert(event)
+            assert commonevent is not None
+            if commonevent.type == QUIT:
+                done = True
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
                     done = True
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        done = True
-                    else:
-                        #TODO handle "key held down" for repeat (ex in text editor)
-                        rootzone.handlezonekeydown(context,  event, pygame.key.get_mods())
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    # 1 - left click, 2 - middle click, 3 - right click, 4 - scroll up, 5 - scroll down
-                    clickx, clicky = pygame.mouse.get_pos()
-                    charx = int(clickx / charwidth)
-                    chary = int(clicky / lineheigth)
-                    print(f"Cliked {charx},{chary}")
-                    rootzone.handlezoneclick(context,  event, charx, chary)
-            screen.fill(bgcolor)
-            rootzone.update()
-            rootzone.draw(context,screen, font)
-            pygame.display.flip()
-            clock.tick(30)# cap to 30 fps
-
+                else:
+                    #TODO handle "key held down" for repeat (ex in text editor)
+                    rootzone.handlezonekeydown(context,  event, pygame.key.get_mods())
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                # 1 - left click, 2 - middle click, 3 - right click, 4 - scroll up, 5 - scroll down
+                clickx, clicky = pygame.mouse.get_pos()
+                charx = int(clickx / renderer.charwidth)
+                chary = int(clicky / renderer.lineheigth)
+                print(f"Cliked {charx},{chary}")
+                rootzone.handlezoneclick(context,  event, charx, chary)
+        rootzone.update()
+        rootzone.draw(context,renderer)
+        renderer.refresh()
+    renderer.quit()
 
 if __name__ == '__main__':
-    pygame.init()
     main()
-    pygame.quit()
     sys.exit()

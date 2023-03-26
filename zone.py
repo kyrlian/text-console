@@ -186,13 +186,12 @@ class Zone:
 
     # TODO migrate to python curses ? https://docs.python.org/3/howto/curses.html
 
-    def draw(self, context, scr, font):
+    def draw(self, context, renderer):
         """  draw zone """
-        lineheigth = font.get_linesize()
         for child in self.childs:
-            child.draw(context, scr, font)
+            child.draw(context, renderer)
         if self.panel is not None:
             panellines = self.panel.draw()
             for idx, line in enumerate(panellines):
                 linecolor = self.panel.getcolor(context,idx)
-                scr.blit(font.render(line, True, linecolor), (0, idx*lineheigth))
+                renderer.render(line,linecolor,0,idx)

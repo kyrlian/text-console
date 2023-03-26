@@ -13,6 +13,7 @@ screen.addstr("This is a Sample Curses Script\n\n")
 
 while True:
     event = screen.getch() 
+    print(f"event: {event}")
     if event == ord("q"): break 
     if event == curses.KEY_MOUSE:
         _, mx, my, _, _ = curses.getmouse()
