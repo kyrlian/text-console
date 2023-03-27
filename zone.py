@@ -194,4 +194,4 @@ class Zone:
             panellines = self.panel.draw()
             for idx, line in enumerate(panellines):
                 linecolor = self.panel.getcolor(context,idx)
-                renderer.render(line,linecolor,0,idx)
+                renderer.renderline(line,linecolor,0,idx)

@@ -5,7 +5,7 @@
 import sys
 import pygame
 
-from renderer import Renderer
+from rendererpygame import RendererPyGame
 from context import Context
 from zone import Zone
 from panelmp3player import PanelMp3Player
@@ -31,7 +31,7 @@ def initrootzone(screenw, screenh):
 def main():
     """ main """
     mode = "pygame"
-    renderer = Renderer(mode)
+    renderer = RendererPyGame()
     converter = EventConverter(mode,renderer.charwidth, renderer.lineheigth)
     rootzone = initrootzone(renderer.linewidth, renderer.maxlines)
     context = Context(rootzone.getnextpanel())
