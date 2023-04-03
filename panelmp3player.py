@@ -4,8 +4,8 @@
 import os
 from panel import Panel
 from pygame import mixer
-import pygame
 from paneldirectorybrowser import PanelDirectoryBrowser
+import eventconverter
 
 class PanelMp3Player(Panel):
     """ MP3 panel """
@@ -92,10 +92,10 @@ class PanelMp3Player(Panel):
         playercontrols=[]#name,key,symbol,pos,command
         playercontrols.append(("Stop",None,"▣",[1],self.stop))
         playercontrols.append(("Play",None,">",[3],self.play))
-        playercontrols.append(("Pause",pygame.K_SPACE,"||",[5,6],self.pause))
-        playercontrols.append(("Bwd",pygame.K_RIGHT,"<<",[8,9],self.backward))
-        playercontrols.append(("Fwd",pygame.K_LEFT,">>",[11,12],self.forward))
-        playercontrols.append(("Browser",pygame.K_b,"B",[14],self.splitbrowser))
+        playercontrols.append(("Pause",eventconverter.KEY_SPACE,"||",[5,6],self.pause))
+        playercontrols.append(("Bwd",eventconverter.KEY_RIGHT,"<<",[8,9],self.backward))
+        playercontrols.append(("Fwd",eventconverter.KEY_LEFT,">>",[11,12],self.forward))
+        playercontrols.append(("Browser",eventconverter.KEY_b,"B",[14],self.splitbrowser))
         return playercontrols
     
     def handleplayerclick(self, event,charx, chary):
@@ -112,7 +112,7 @@ class PanelMp3Player(Panel):
         self.handleplayerclick(event,charx, chary)
         self.handlecontrolclick(event, charx, chary)
 
-    def handleplayerkeydown(self, event, keymods):
+    def handleplayerkeydown(self, event):
         """ handle player keys """
         for name,key,symbol,pos,command in self.panelcontrols:
             if event.key == key:
@@ -120,6 +120,6 @@ class PanelMp3Player(Panel):
                 command()
                 return
 
-    def handlepanelkeydown(self, event, keymods):
-        self.handleplayerkeydown(event, keymods)
-        self.handlecontrolkeydown(event, keymods)
+    def handlepanelkeydown(self, event):
+        self.handleplayerkeydown(event)
+        self.handlecontrolkeydown(event)

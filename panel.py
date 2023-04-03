@@ -2,6 +2,7 @@
 #kyrlian, 2023
 
 import pygame
+import eventconverter
 
 class Panel:
     """ base panel class"""
@@ -97,11 +98,11 @@ class Panel:
     def initwindowcontrols(self):
         # "□_|⇅x"
         controls=[]#name,key,symbol,pos,command
-        controls.append(("MaxMin",pygame.K_m,"M",[1],self.toggleminimised))
-        controls.append(("SplitH",pygame.K_h,"H",[2],self.splith))
-        controls.append(("SplitV",pygame.K_v,"V",[3],self.splitv))
-        controls.append(("Switch",pygame.K_s,"S",[4],self.switch))
-        controls.append(("Close",pygame.K_x,"X",[5],self.remove))
+        controls.append(("MaxMin",eventconverter.KEY_m,"M",[1],self.toggleminimised))
+        controls.append(("SplitH",eventconverter.KEY_h,"H",[2],self.splith))
+        controls.append(("SplitV",eventconverter.KEY_v,"V",[3],self.splitv))
+        controls.append(("Switch",eventconverter.KEY_s,"S",[4],self.switch))
+        controls.append(("Close",eventconverter.KEY_x,"X",[5],self.remove))
         return controls
 
     def drawcontrols(self, controls, spacing):
@@ -122,18 +123,18 @@ class Panel:
         self.handlecontrolclick(event, charx, chary)
         #to be customized for each panel type
 
-    def handlecontrolkeydown(self, event, keymods):
+    def handlecontrolkeydown(self, commonevent):
         """  handle control keys """
-        if keymods & pygame.KMOD_CTRL:#CTRL keys
+        if commonevent.keymods == eventconverter.KMOD_CTRL:#CTRL keys
             for name,key,symbol,pos,command in self.windowcontrols:
-                if event.key == key:
+                if commonevent.key == key:
                     print(f"Pressed {name}")
                     command()
                     return
         
-    def handlepanelkeydown(self, event, keymods):#triggered only on focused panel
+    def handlepanelkeydown(self, event):#triggered only on focused panel
         """  handle panel keydown """
-        self.handlecontrolkeydown(event, keymods)
+        self.handlecontrolkeydown(event)
         #to be customized for each panel type
 
 # single line borders - https://en.wikipedia.org/wiki/Box_Drawing

@@ -1,11 +1,11 @@
 """ menu panel """
 #kyrlian, 2023
 
-import pygame
 from panel import Panel
 from panelmp3player import PanelMp3Player
 from panelclock import PanelClock
 from paneltextinput import PanelTextInput
+import eventconverter
 
 class PanelMenu(Panel):
     """ menu panel """
@@ -32,9 +32,9 @@ class PanelMenu(Panel):
 
     def initmenucontrols(self):
         controls=[]#name,key,symbol,pos,command
-        controls.append(("[C]lock",pygame.K_c,"C",[1],self.replacewithClock))
-        controls.append(("[M]P3 Player",pygame.K_m,"M",[2],self.replacewithMP3Player))
-        controls.append(("[T]ext Editor",pygame.K_t,"T",[3],self.replacewithTextEditor))
+        controls.append(("[C]lock",eventconverter.KEY_c,"C",[1],self.replacewithClock))
+        controls.append(("[M]P3 Player",eventconverter.KEY_m,"M",[2],self.replacewithMP3Player))
+        controls.append(("[T]ext Editor",eventconverter.KEY_t,"T",[3],self.replacewithTextEditor))
         return controls
     
     def handlechoiceclick(self, event,charx, chary):
@@ -50,7 +50,7 @@ class PanelMenu(Panel):
         self.handlechoiceclick(event,charx, chary)
         self.handlecontrolclick(event, charx, chary)
 
-    def handlemenukeydown(self, event, keymods):
+    def handlemenukeydown(self, event):
         """ handle menu shortcuts """
         if self.zone is not None:
             for name,key,symbol,pos,command in self.menucontrols:
@@ -59,6 +59,6 @@ class PanelMenu(Panel):
                     command()
                     return
 
-    def handlepanelkeydown(self, event, keymods):
-        self.handlecontrolkeydown(event, keymods)
-        self.handlemenukeydown(event, keymods)
+    def handlepanelkeydown(self, event):
+        self.handlecontrolkeydown(event)
+        self.handlemenukeydown(event)

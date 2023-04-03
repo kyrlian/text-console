@@ -1,40 +1,46 @@
 import pygame
 import curses
 
-K_RIGHT=12
-K_LEFT=13
-K_UP=14
-K_DOWN=15
-K_b=2
-K_c=3
-K_h=4
-K_m=5
-K_q=25
-K_s=6
-K_t=7
-K_v=8
-K_w=9
-K_x=10
-K_SPACE=11
-K_HOME=16
-K_END=17
-K_BACKSPACE=18
-K_DELETE=19
-K_RETURN=20
-QUIT=21
-K_ESCAPE=22
-KEYDOWN = 23
-MOUSEBUTTONDOWN = 24
+KEY_a=1
+KEY_b=2
+KEY_c=3
+KEY_h=4
+KEY_m=5
+KEY_q=6
+KEY_s=16
+KEY_t=17
+KEY_v=18
+KEY_w=19
+KEY_x=20
+KEY_RIGHT=31
+KEY_LEFT=32
+KEY_UP=33
+KEY_DOWN=34
+KEY_SPACE=35
+KEY_HOME=36
+KEY_END=37
+KEY_BACKSPACE=38
+KEY_DELETE=39
+KEY_RETURN=40
+KEY_ESCAPE=41
+KEY_TAB=42
 
+TYPE_QUIT=101
+TYPE_KEYDOWN = 102
+TYPE_MOUSEBUTTONDOWN = 103
 
-# TODO merge with renderer (commonInterface ?)
+KMOD_CTRL=201
+
+# TODO merge with renderer ? (commonInterface ?)
 class CommonEvent():
-    def __init__(self, type,key, btn,mx,my):
+    def __init__(self, type,key, keymod, unicode, btn,mx,my):
         self.type = type
         self.key = key
         self.btn = btn
         self.mousex = mx
         self.mousey = my
+        self.keymods = keymod
+        self.unicode = unicode
      
 class EventConverter():
     def __init__(self, mode="pygame", charwidth=1, lineheigth=1):
@@ -49,64 +55,72 @@ class EventConverter():
             return self.convertfromcurses(event)
             
     def convertfrompygame(self,event):
-            type=None
-            key=None
-            btn=None
-            mx=None 
-            my=None
+            commmoneventtype=None
+            commmoneventkey=None
+            commmoneventkeymod=None
+            commoneventunicode=None
+            commmoneventbtn=None
+            commmoneventmx=None 
+            commmoneventmy=None
             if event.type == pygame.QUIT:
-                type =QUIT
+                commmoneventtype =TYPE_QUIT
             elif event.type == pygame.KEYDOWN:
-                type =KEYDOWN
+                commmoneventtype = TYPE_KEYDOWN
                 conv = {
-                    pygame.K_UP:K_UP,
-                    pygame.K_DOWN:K_DOWN,
-                    pygame.K_b:K_b,
-                    pygame.K_c:K_c,
-                    pygame.K_h:K_h,
-                    pygame.K_m:K_m,
-                    pygame.K_s:K_s,
-                    pygame.K_t:K_t,
-                    pygame.K_v:K_v,
-                    pygame.K_w:K_w,
-                    pygame.K_x:K_x,
-                    pygame.K_SPACE:K_SPACE,
-                    pygame.K_RIGHT:K_RIGHT,
-                    pygame.K_LEFT:K_LEFT,
-                    pygame.K_UP:K_UP,
-                    pygame.K_DOWN:K_DOWN,
-                    pygame.K_HOME:K_HOME,
-                    pygame.K_END:K_END,
-                    pygame.K_BACKSPACE:K_BACKSPACE,
-                    pygame.K_DELETE:K_DELETE,
-                    pygame.K_RETURN:K_RETURN,
-                    pygame.K_ESCAPE:K_ESCAPE
+                    pygame.K_UP:KEY_UP,
+                    pygame.K_DOWN:KEY_DOWN,
+                    pygame.K_b:KEY_b,
+                    pygame.K_c:KEY_c,
+                    pygame.K_h:KEY_h,
+                    pygame.K_m:KEY_m,
+                    pygame.K_s:KEY_s,
+                    pygame.K_t:KEY_t,
+                    pygame.K_v:KEY_v,
+                    pygame.K_w:KEY_w,
+                    pygame.K_x:KEY_x,
+                    pygame.K_SPACE:KEY_SPACE,
+                    pygame.K_RIGHT:KEY_RIGHT,
+                    pygame.K_LEFT:KEY_LEFT,
+                    pygame.K_UP:KEY_UP,
+                    pygame.K_DOWN:KEY_DOWN,
+                    pygame.K_HOME:KEY_HOME,
+                    pygame.K_END:KEY_END,
+                    pygame.K_TAB:KEY_TAB,
+                    pygame.K_BACKSPACE:KEY_BACKSPACE,
+                    pygame.K_DELETE:KEY_DELETE,
+                    pygame.K_RETURN:KEY_RETURN,
+                    pygame.K_ESCAPE:KEY_ESCAPE
                 }
-                if event.key in conv: key=conv[event.key]
+                if event.key in conv: commmoneventkey=conv[event.key]
+                commoneventunicode = event.unicode #keep unicode as-is
+                if pygame.key.get_mods() & pygame.KMOD_CTRL:  # CTRL keys
+                    commmoneventkeymod = KMOD_CTRL
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                type = MOUSEBUTTONDOWN
+                commmoneventtype = TYPE_MOUSEBUTTONDOWN
                 clickx, clicky = pygame.mouse.get_pos()
                 # btn= TODO read button status left/right/mid
-                mx = int(clickx / self.charwidth)
-                my = int(clicky / self.lineheigth)
-            return CommonEvent(type, key, btn,mx,my)
+                commmoneventmx = int(clickx / self.charwidth)
+                commmoneventmy = int(clicky / self.lineheigth)
+            return CommonEvent(commmoneventtype, commmoneventkey, commmoneventkeymod, commoneventunicode, commmoneventbtn,commmoneventmx,commmoneventmy)
 
     def convertfromcurses(self,event):
-        type=None
-        key=None
-        btn=None
-        mx=None 
-        my=None
+        commmoneventtype=None
+        commmoneventkey=None
+        commmoneventkeymod=None
+        commoneventunicode=None
+        commmoneventbtn=None
+        commmoneventmx=None 
+        commmoneventmy=None
         if event == curses.KEY_MOUSE:
-            type = MOUSEBUTTONDOWN
+            commmoneventtype = TYPE_MOUSEBUTTONDOWN
             mid, mx, my, mz, mbstate = curses.getmouse()
             # btn= TODO read button status left/right/mid
         else :
-            type =KEYDOWN
+            commmoneventtype =TYPE_KEYDOWN
             conv = {
-                curses.KEY_SPACE:K_SPACE,
-                ord('q'): K_q
+                curses.KEY_SPACE:KEY_SPACE,
+                ord('q'): KEY_q
             }
-            if event in conv: key=conv[event]
-        return CommonEvent(type, key, btn,mx,my)
+            if event in conv: commmoneventkey=conv[event]
+        return CommonEvent(commmoneventtype, commmoneventkey, commmoneventkeymod, commoneventunicode, commmoneventbtn,commmoneventmx,commmoneventmy)
 

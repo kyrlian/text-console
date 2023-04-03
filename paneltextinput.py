@@ -2,7 +2,7 @@
 # kyrlian, 2023
 
 import os
-import pygame
+import eventconverter
 from panel import Panel
 from cursor import Cursor
 
@@ -144,7 +144,7 @@ class PanelTextInput(Panel):
         # update of wraped cursor will be done during next wraping compute
         self.movetextcursor(newcursorx, y1)
 
-    def handletextkeydown(self, event, keymods):
+    def handletextkeydown(self, event):
         """ handle generic key down """
         textcursorx = self.textcursor.getchar()
         textcursory = self.textcursor.getline()
@@ -155,39 +155,39 @@ class PanelTextInput(Panel):
         print(
             f"handlepanelkeydown: wrapedcursory:{wrapedcursory}, wrapedcursorx:{wrapedcursorx}.")
         # MOVES are done on wraped cursor & translated
-        if event.key == pygame.K_UP:
+        if event.key == eventconverter.KEY_UP:
             self.movewrapedcursor(wrapedcursorx, wrapedcursory-1)
-        elif event.key == pygame.K_DOWN:
+        elif event.key == eventconverter.KEY_DOWN:
             self.movewrapedcursor(wrapedcursorx, wrapedcursory+1)
-        elif event.key == pygame.K_LEFT:
+        elif event.key == eventconverter.KEY_LEFT:
             if wrapedcursorx > 0:
                 self.movewrapedcursor(wrapedcursorx-1, wrapedcursory)
             else:
                 self.movewrapedcursor(wrapedcursorx, wrapedcursory-1)
-        elif event.key == pygame.K_RIGHT:
+        elif event.key == eventconverter.KEY_RIGHT:
             if wrapedcursorx < len(self.wrapedlines[wrapedcursory]):
                 self.movewrapedcursor(wrapedcursorx+1, wrapedcursory)
             else:
                 self.movewrapedcursor(wrapedcursorx, wrapedcursory+1)
-        elif event.key == pygame.K_HOME:
+        elif event.key == eventconverter.KEY_HOME:
             self.movewrapedcursor(0, 0)
-        elif event.key == pygame.K_END:
+        elif event.key == eventconverter.KEY_END:
             self.movewrapedcursor(
                 len(self.wrapedlines[len(self.wrapedlines)-1]), len(self.wrapedlines))
         # EDITS are done on text cursor
-        elif event.key == pygame.K_BACKSPACE:
+        elif event.key == eventconverter.KEY_BACKSPACE:
             if textcursorx > 0:
                 self.rmcharat(textcursory, textcursorx)
             else:
                 self.joinlines(textcursory-1, textcursory)
-        elif event.key == pygame.K_DELETE:
+        elif event.key == eventconverter.KEY_DELETE:
             if textcursorx < len(self.textlines[textcursory]):
                 self.rmcharat(textcursory, textcursorx+1)
             else:
                 self.joinlines(textcursory, textcursory+1)
-        elif event.key == pygame.K_RETURN:
+        elif event.key == eventconverter.KEY_RETURN:
             self.insertlineat(textcursory, textcursorx)
-        elif event.key == pygame.K_TAB:
+        elif event.key == eventconverter.KEY_TAB:
             # TAB is 2 spaces
             self.insertcharat(" ", textcursory, textcursorx)
             self.insertcharat(" ", textcursory, textcursorx)
@@ -200,16 +200,16 @@ class PanelTextInput(Panel):
         self.wordwrapflag = not self.wordwrapflag
         print(f"wordwrap:{self.wordwrapflag}")
 
-    def handlepanelcontrolkeydown(self, event, keymods):
+    def handlepanelcontrolkeydown(self, commonevent):
         """ Handle controls by key """
-        if keymods & pygame.KMOD_CTRL:  # CTRL keys
-            if event.key == pygame.K_w:  # toggle wordwrap
+        if commonevent.keymods == eventconverter.KMOD_CTRL:  # CTRL keys
+            if commonevent.key == eventconverter.KEY_w:  # toggle wordwrap
                 self.togglewordwrap()
 
-    def handlepanelkeydown(self, event, keymods):
-        self.handlecontrolkeydown(event, keymods)
-        self.handlepanelcontrolkeydown(event, keymods)
-        self.handletextkeydown(event, keymods)
+    def handlepanelkeydown(self, event):
+        self.handlecontrolkeydown(event)
+        self.handlepanelcontrolkeydown(event)
+        self.handletextkeydown(event)
 
     def handletextclick(self, event, charx, chary):
         """ handle click in text area """

@@ -6,6 +6,7 @@ from functools import reduce
 from operator import iconcat
 import pygame
 from panelmenu import PanelMenu
+import eventconverter
 
 class Zone:
     """ zone class """
@@ -168,14 +169,14 @@ class Zone:
                 return self.panelist [(idx+1)%len(self.panelist)]
         return self.panelist[0]
         
-    def handlezonekeydown(self, context, event, keymods):
+    def handlezonekeydown(self, context, event):
         """  handle key down in zone, and pass to focused panel """
-        if event.key == pygame.K_TAB and keymods & pygame.KMOD_CTRL:#Pass focus to next panel in zone
+        if event.key == eventconverter.KEY_TAB and event.keymods == eventconverter.KMOD_CTRL:#Pass focus to next panel in zone
             nextpanel = self.getnextpanel(context.focusedpanel)
             if nextpanel is not None:
                 context.focusedpanel = nextpanel
         else:
-            context.focusedpanel.handlepanelkeydown(event, keymods)
+            context.focusedpanel.handlepanelkeydown(event)
 
     def update(self):
         """  update panel or child zones """

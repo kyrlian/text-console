@@ -4,7 +4,7 @@
 import os
 from panel import Panel
 from pygame import mixer
-from eventconverter import K_UP, K_DOWN
+import eventconverter
 
 class PanelDirectoryBrowser(Panel):
     """ Directory Browser panel """
@@ -80,8 +80,8 @@ class PanelDirectoryBrowser(Panel):
 
     def initpanelcontrols(self):
         browsercontrols = []  # name,key,symbol,pos,command
-        browsercontrols.append(("Up", K_UP, "^", [14], self.scrollup))
-        browsercontrols.append(("Down", K_DOWN, "v", [16], self.scrolldown))
+        browsercontrols.append(("Up", eventconverter.KEY_UP, "^", [14], self.scrollup))
+        browsercontrols.append(("Down", eventconverter.KEY_DOWN, "v", [16], self.scrolldown))
         return browsercontrols
 
     def handlebrowserclick(self, event, charx, chary):
@@ -101,7 +101,7 @@ class PanelDirectoryBrowser(Panel):
         self.handlebrowserclick(event, charx, chary)
         self.handlecontrolclick(event, charx, chary)
 
-    def handlebrowserkeydown(self, event, keymods):
+    def handlebrowserkeydown(self, event):
         """ handle player keys """
         for name, key, symbol, pos, command in self.panelcontrols:
             if event.key == key:
@@ -109,6 +109,6 @@ class PanelDirectoryBrowser(Panel):
                 command()
                 return
 
-    def handlepanelkeydown(self, event, keymods):
-        self.handlebrowserkeydown(event, keymods)
-        self.handlecontrolkeydown(event, keymods)
+    def handlepanelkeydown(self, event):
+        self.handlebrowserkeydown(event)
+        self.handlecontrolkeydown(event)

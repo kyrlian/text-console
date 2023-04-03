@@ -13,7 +13,7 @@ from panelclock import PanelClock
 from paneltextinput import PanelTextInput
 from paneldirectorybrowser import PanelDirectoryBrowser
 from eventconverter import EventConverter
-from eventconverter import QUIT
+import eventconverter 
 
 
 
@@ -41,19 +41,18 @@ def main():
         for event in pygame.event.get():
             commonevent = converter.convert(event)
             assert commonevent is not None
-            if commonevent.type == QUIT:
+            if commonevent.type == eventconverter.TYPE_QUIT:
                 done = True
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+            elif commonevent.type == eventconverter.TYPE_KEYDOWN:
+                if commonevent.key == eventconverter.KEY_ESCAPE:
                     done = True
                 else:
                     #TODO handle "key held down" for repeat (ex in text editor)
-                    rootzone.handlezonekeydown(context,  event, pygame.key.get_mods())
-            elif event.type == pygame.MOUSEBUTTONDOWN:
+                    rootzone.handlezonekeydown(context, commonevent)
+            elif commonevent.type == eventconverter.TYPE_MOUSEBUTTONDOWN:
                 # 1 - left click, 2 - middle click, 3 - right click, 4 - scroll up, 5 - scroll down
-                clickx, clicky = pygame.mouse.get_pos()
-                charx = int(clickx / renderer.charwidth)
-                chary = int(clicky / renderer.lineheigth)
+                charx = commonevent.mousex
+                chary = commonevent.mousey
                 print(f"Cliked {charx},{chary}")
                 rootzone.handlezoneclick(context,  event, charx, chary)
         rootzone.update()
