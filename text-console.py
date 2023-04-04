@@ -11,11 +11,8 @@ from zone import Zone
 from panelmp3player import PanelMp3Player
 from panelclock import PanelClock
 from paneltextinput import PanelTextInput
-from paneldirectorybrowser import PanelDirectoryBrowser
 from eventconverter import EventConverter
 import eventconverter 
-
-
 
 def initrootzone(screenw, screenh):
     """ init root zone """
